@@ -1,4 +1,4 @@
--- DECLARACIÓN XML (REEMPLAZAR EL CONTENIDO DENTRO DE LAS COMILLAS)
+-- DECLARACIÓN XML 
 DECLARE @xml XML = '
 <Catalogo>
 <TiposdeDocumentodeIdentidad>
