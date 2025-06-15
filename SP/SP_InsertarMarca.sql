@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_InsertarMarca
 Descripción: Registra una marca de entrada o salida para un empleado.
@@ -19,7 +18,10 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar existencia del empleado
-        IF NOT EXISTS (SELECT 1 FROM dbo.Empleado WHERE id = @inIdEmpleado AND activo = 1)
+        IF NOT EXISTS (
+            SELECT 1 FROM dbo.Empleado
+            WHERE id = @inIdEmpleado AND activo = 1
+        )
         BEGIN
             SET @outResultCode = 50004; -- Empleado no encontrado
             ROLLBACK;
@@ -46,20 +48,30 @@ BEGIN
             @inTipoMarca
         );
 
-        -- Registrar bitácora
+        -- Obtener ID de la marca recién creada
         DECLARE @idNuevaMarca INT = SCOPE_IDENTITY();
-        DECLARE @jsonDespues NVARCHAR(MAX);
-        DECLARE @descripcionEvento VARCHAR(255);
 
+        -- Obtener datos insertados para bitácora (evitar SELECT *)
+        DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.Marca WHERE id = @idNuevaMarca FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT
+                id,
+                idEmpleado,
+                fechaHora,
+                tipoMarca
+            FROM dbo.Marca
+            WHERE id = @idNuevaMarca
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
+        -- Preparar descripción del evento
+        DECLARE @descripcionEvento VARCHAR(255);
         SET @descripcionEvento = 'Marca de ' + @inTipoMarca + ' registrada';
 
+        -- Registrar en bitácora
         EXEC dbo.SP_RegistrarBitacoraEvento
             @inIdUsuario = @inIdPostByUser,
-            @inIdTipoEvento = 402,
+            @inIdTipoEvento = 402, -- Evento: Registro de marca
             @inDescripcion = @descripcionEvento,
             @inIdPostByUser = @inIdPostByUser,
             @inPostInIP = @inPostInIP,
@@ -69,6 +81,7 @@ BEGIN
 
         COMMIT;
         SET @outResultCode = 0;
+
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK;

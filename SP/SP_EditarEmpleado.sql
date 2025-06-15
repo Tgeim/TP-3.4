@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_EditarEmpleado
 Descripción: Edita los datos de un empleado activo.
@@ -23,7 +22,11 @@ BEGIN
         BEGIN TRANSACTION;
 
         -- Validar existencia del empleado
-        IF NOT EXISTS (SELECT 1 FROM dbo.Empleado WHERE id = @inId AND activo = 1)
+        IF NOT EXISTS (
+            SELECT 1 
+            FROM dbo.Empleado 
+            WHERE id = @inId AND activo = 1
+        )
         BEGIN
             SET @outResultCode = 50004; -- Empleado no encontrado
             ROLLBACK;
@@ -32,7 +35,8 @@ BEGIN
 
         -- Validar unicidad de valorDocumento
         IF EXISTS (
-            SELECT 1 FROM dbo.Empleado
+            SELECT 1 
+            FROM dbo.Empleado
             WHERE valorDocumento = @inValorDocumento AND id <> @inId AND activo = 1
         )
         BEGIN
@@ -44,12 +48,24 @@ BEGIN
         -- Obtener datos anteriores
         DECLARE @jsonAntes NVARCHAR(MAX);
         SELECT @jsonAntes = (
-            SELECT * FROM dbo.Empleado WHERE id = @inId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT 
+                id,
+                nombreCompleto,
+                valorDocumento,
+                fechaNacimiento,
+                activo,
+                idTipoDocumento,
+                idDepartamento,
+                idPuesto
+            FROM dbo.Empleado
+            WHERE id = @inId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
         -- Actualizar empleado
         UPDATE dbo.Empleado
-        SET nombreCompleto = @inNombreCompleto,
+        SET 
+            nombreCompleto = @inNombreCompleto,
             valorDocumento = @inValorDocumento,
             fechaNacimiento = @inFechaNacimiento,
             idTipoDocumento = @inIdTipoDocumento,
@@ -60,20 +76,40 @@ BEGIN
         -- Obtener datos nuevos
         DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.Empleado WHERE id = @inId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT 
+                id,
+                nombreCompleto,
+                valorDocumento,
+                fechaNacimiento,
+                activo,
+                idTipoDocumento,
+                idDepartamento,
+                idPuesto
+            FROM dbo.Empleado
+            WHERE id = @inId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        -- Registrar bitácora
+        -- Registrar en bitácora
         INSERT INTO dbo.BitacoraEvento (
-            idUsuario, idTipoEvento, descripcion,
-            idPostByUser, postInIP, postTime,
-            jsonAntes, jsonDespues
+            idUsuario,
+            idTipoEvento,
+            descripcion,
+            idPostByUser,
+            postInIP,
+            postTime,
+            jsonAntes,
+            jsonDespues
         )
         VALUES (
-            @inIdPostByUser, 102, -- 102 = edición
+            @inIdPostByUser,
+            102,
             'Modificación de empleado',
-            @inIdPostByUser, @inPostInIP, GETDATE(),
-            @jsonAntes, @jsonDespues
+            @inIdPostByUser,
+            @inPostInIP,
+            GETDATE(),
+            @jsonAntes,
+            @jsonDespues
         );
 
         COMMIT;

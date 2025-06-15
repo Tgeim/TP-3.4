@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_InsertarDeduccionEmpleado
 Descripción: Asocia una deducción a un empleado (si no es obligatoria y no existe ya).
@@ -20,7 +19,8 @@ BEGIN
 
         -- Validar existencia del empleado
         IF NOT EXISTS (
-            SELECT 1 FROM dbo.Empleado WHERE id = @inIdEmpleado AND activo = 1
+            SELECT 1 FROM dbo.Empleado
+            WHERE id = @inIdEmpleado AND activo = 1
         )
         BEGIN
             SET @outResultCode = 50004; -- Empleado no encontrado
@@ -28,9 +28,10 @@ BEGIN
             RETURN;
         END
 
-        -- Validar existencia de la deducción
+        -- Validar existencia del tipo de deducción
         IF NOT EXISTS (
-            SELECT 1 FROM dbo.TipoDeduccion WHERE id = @inIdTipoDeduccion
+            SELECT 1 FROM dbo.TipoDeduccion
+            WHERE id = @inIdTipoDeduccion
         )
         BEGIN
             SET @outResultCode = 50016; -- Tipo de deducción no válido
@@ -38,7 +39,7 @@ BEGIN
             RETURN;
         END
 
-        -- Validar si ya existe asociación activa
+        -- Validar si ya existe una asociación activa
         IF EXISTS (
             SELECT 1 FROM dbo.DeduccionEmpleado
             WHERE idEmpleado = @inIdEmpleado
@@ -69,7 +70,15 @@ BEGIN
         DECLARE @idNueva INT = SCOPE_IDENTITY();
         DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.DeduccionEmpleado WHERE id = @idNueva FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT
+                id,
+                idEmpleado,
+                idTipoDeduccion,
+                fechaAsociacion,
+                fechaDesasociacion
+            FROM dbo.DeduccionEmpleado
+            WHERE id = @idNueva
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
         EXEC dbo.SP_RegistrarBitacoraEvento
@@ -90,3 +99,4 @@ BEGIN
         SET @outResultCode = 50018; -- Error general al asociar deducción
     END CATCH
 END;
+2

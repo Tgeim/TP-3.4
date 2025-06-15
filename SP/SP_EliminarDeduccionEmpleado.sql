@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_EliminarDeduccionEmpleado
 Descripción: Desasocia una deducción activa de un empleado si no es obligatoria.
@@ -18,7 +17,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        -- Validar que la deducción esté asociada y activa
+        -- Validar existencia de asociación activa
         IF NOT EXISTS (
             SELECT 1
             FROM dbo.DeduccionEmpleado
@@ -32,7 +31,7 @@ BEGIN
             RETURN;
         END
 
-        -- Verificar si es obligatoria
+        -- Verificar si la deducción es obligatoria
         IF EXISTS (
             SELECT 1
             FROM dbo.TipoDeduccion
@@ -44,30 +43,46 @@ BEGIN
             RETURN;
         END
 
-        -- Registrar antes
+        -- Obtener jsonAntes
         DECLARE @jsonAntes NVARCHAR(MAX);
         SELECT @jsonAntes = (
-            SELECT * FROM dbo.DeduccionEmpleado
-            WHERE idEmpleado = @inIdEmpleado AND idTipoDeduccion = @inIdTipoDeduccion AND fechaDesasociacion IS NULL
+            SELECT 
+                id,
+                idEmpleado,
+                idTipoDeduccion,
+                fechaAsociacion,
+                fechaDesasociacion
+            FROM dbo.DeduccionEmpleado
+            WHERE idEmpleado = @inIdEmpleado
+              AND idTipoDeduccion = @inIdTipoDeduccion
+              AND fechaDesasociacion IS NULL
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        -- Actualizar
+        -- Desasociar la deducción
         UPDATE dbo.DeduccionEmpleado
         SET fechaDesasociacion = @inFechaDesasociacion
         WHERE idEmpleado = @inIdEmpleado
           AND idTipoDeduccion = @inIdTipoDeduccion
           AND fechaDesasociacion IS NULL;
 
-        -- Registrar después
+        -- Obtener jsonDespues
         DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.DeduccionEmpleado
-            WHERE idEmpleado = @inIdEmpleado AND idTipoDeduccion = @inIdTipoDeduccion AND fechaDesasociacion = @inFechaDesasociacion
+            SELECT 
+                id,
+                idEmpleado,
+                idTipoDeduccion,
+                fechaAsociacion,
+                fechaDesasociacion
+            FROM dbo.DeduccionEmpleado
+            WHERE idEmpleado = @inIdEmpleado
+              AND idTipoDeduccion = @inIdTipoDeduccion
+              AND fechaDesasociacion = @inFechaDesasociacion
             FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        -- Bitácora
+        -- Registrar evento en bitácora
         EXEC dbo.SP_RegistrarBitacoraEvento
             @inIdUsuario = @inIdPostByUser,
             @inIdTipoEvento = 502,

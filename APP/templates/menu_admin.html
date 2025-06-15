@@ -6,11 +6,11 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
 <body>
-    <h1>Bienvenido, {{ usuario.username }}</h1>
+    <h1>Bienvenido, {{ usuario.correo }}</h1>
     <h2>Menú de Administración</h2>
     <ul>
         <li><a href="/admin/empleados">Listar Empleados</a></li>
-        <li><a href="#">Insertar Empleado</a></li>
+        <li><a href="/admin/nuevo_empleado">Insertar Empleado</a></li>
         <li><a href="#">Editar Empleado</a></li>
         <li><a href="#">Eliminar Empleado</a></li>
         <li><a href="#">Consultar Planilla</a></li>

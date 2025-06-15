@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_InsertarMovimiento
 Descripción: Registra un movimiento de planilla específico para un empleado (manual o adicional).
@@ -21,14 +20,18 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        IF NOT EXISTS (SELECT 1 FROM dbo.Empleado WHERE id = @inIdEmpleado AND activo = 1)
+        -- Validar existencia del empleado activo
+        IF NOT EXISTS (
+            SELECT 1 FROM dbo.Empleado
+            WHERE id = @inIdEmpleado AND activo = 1
+        )
         BEGIN
             SET @outResultCode = 50004; -- Empleado no encontrado
             ROLLBACK;
             RETURN;
         END
 
-        -- Insertar el movimiento
+        -- Insertar movimiento
         INSERT INTO dbo.Movimiento (
             idEmpleado,
             idTipoMovimiento,
@@ -48,16 +51,28 @@ BEGIN
             GETDATE()
         );
 
-        -- Registrar en bitácora
+        -- Obtener ID y datos nuevos
         DECLARE @nuevoIdMovimiento INT = SCOPE_IDENTITY();
         DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.Movimiento WHERE id = @nuevoIdMovimiento FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT
+                id,
+                idEmpleado,
+                idTipoMovimiento,
+                semana,
+                cantidadHoras,
+                monto,
+                creadoPorSistema,
+                fechaCreacion
+            FROM dbo.Movimiento
+            WHERE id = @nuevoIdMovimiento
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
+        -- Registrar bitácora
         EXEC dbo.SP_RegistrarBitacoraEvento
             @inIdUsuario = @inIdPostByUser,
-            @inIdTipoEvento = 401, -- inserción de movimiento
+            @inIdTipoEvento = 401, -- Inserción de movimiento
             @inDescripcion = 'Inserción manual de movimiento de planilla',
             @inIdPostByUser = @inIdPostByUser,
             @inPostInIP = @inPostInIP,
@@ -67,9 +82,10 @@ BEGIN
 
         COMMIT;
         SET @outResultCode = 0;
+
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK;
-        SET @outResultCode = 50013;
+        SET @outResultCode = 50013; -- Error general al insertar movimiento
     END CATCH
 END;

@@ -1,4 +1,3 @@
-
 /*
 Nombre: dbo.SP_EliminarEmpleado
 Descripción: Realiza una baja lógica del empleado marcándolo como inactivo.
@@ -16,29 +15,57 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
-        IF NOT EXISTS (SELECT 1 FROM dbo.Empleado WHERE id = @inId AND activo = 1)
+        -- Validar existencia activa
+        IF NOT EXISTS (
+            SELECT 1 FROM dbo.Empleado
+            WHERE id = @inId AND activo = 1
+        )
         BEGIN
             SET @outResultCode = 50004; -- Empleado no encontrado
             ROLLBACK;
             RETURN;
         END
 
+        -- Capturar estado anterior
         DECLARE @jsonAntes NVARCHAR(MAX);
         SELECT @jsonAntes = (
-            SELECT * FROM dbo.Empleado WHERE id = @inId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT
+                id,
+                nombreCompleto,
+                valorDocumento,
+                fechaNacimiento,
+                activo,
+                idTipoDocumento,
+                idDepartamento,
+                idPuesto
+            FROM dbo.Empleado
+            WHERE id = @inId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        -- Actualizar estado
+        -- Baja lógica
         UPDATE dbo.Empleado
         SET activo = 0
         WHERE id = @inId;
 
+        -- Capturar estado posterior
         DECLARE @jsonDespues NVARCHAR(MAX);
         SELECT @jsonDespues = (
-            SELECT * FROM dbo.Empleado WHERE id = @inId FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
+            SELECT
+                id,
+                nombreCompleto,
+                valorDocumento,
+                fechaNacimiento,
+                activo,
+                idTipoDocumento,
+                idDepartamento,
+                idPuesto
+            FROM dbo.Empleado
+            WHERE id = @inId
+            FOR JSON PATH, WITHOUT_ARRAY_WRAPPER
         );
 
-        -- Registrar en bitácora
+        -- Bitácora
         INSERT INTO dbo.BitacoraEvento (
             idUsuario, idTipoEvento, descripcion,
             idPostByUser, postInIP, postTime,
