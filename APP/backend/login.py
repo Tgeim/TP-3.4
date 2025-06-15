@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, session
 from backend.conexion import obtener_conexion
-import hashlib
+import socket
 
 ruta_login = Blueprint('ruta_login', __name__)
 
@@ -9,49 +9,47 @@ def login():
     if request.method == 'POST':
         usuario = request.form['usuario']
         contrasena = request.form['contrasena']
-        ip_cliente = request.remote_addr
+        ip_local = socket.gethostbyname(socket.gethostname())
 
-        # Hasheamos la contraseña
-        hash_obj = hashlib.sha256(contrasena.encode())
-        contrasena_hash = hash_obj.hexdigest()
+        conn = obtener_conexion()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DECLARE @outIdUsuario INT,
+                    @outEsAdministrador BIT,
+                    @outResultCode INT;
 
-        conexion = obtener_conexion()
-        try:
-            with conexion.cursor() as cursor:
-                cursor.execute("""
-                    DECLARE @outIdUsuario INT,
-                            @outEsAdministrador BIT,
-                            @outResultCode INT;
+            EXEC dbo.SP_Login
+                @inUsername = ?,
+                @inPasswordHash = ?,
+                @inPostInIP = ?,
+                @outIdUsuario = @outIdUsuario OUTPUT,
+                @outEsAdministrador = @outEsAdministrador OUTPUT,
+                @outResultCode = @outResultCode OUTPUT;
 
-                    EXEC dbo.SP_Login
-                        @inUsername = ?,
-                        @inPasswordHash = ?,
-                        @inPostInIP = ?,
-                        @outIdUsuario = @outIdUsuario OUTPUT,
-                        @outEsAdministrador = @outEsAdministrador OUTPUT,
-                        @outResultCode = @outResultCode OUTPUT;
+            SELECT @outIdUsuario AS idUsuario,
+                   @outEsAdministrador AS esAdministrador,
+                   @outResultCode AS resultCode;
+        """, (usuario, contrasena, ip_local))
 
-                    SELECT @outIdUsuario AS idUsuario,
-                           @outEsAdministrador AS esAdministrador,
-                           @outResultCode AS resultCode;
-                """, usuario, contrasena_hash, ip_cliente)
+        result = cursor.fetchone()
+        conn.close()
 
-                resultado = cursor.fetchone()
-
-                if resultado and resultado.resultCode == 0:
-                    session['idUsuario'] = resultado.idUsuario
-                    session['esAdministrador'] = resultado.esAdministrador
-                    session['usuario'] = usuario
-
-                    if resultado.esAdministrador:
-                        return render_template('menu_admin.html')
-                    else:
-                        return render_template('menu_usuario.html')
-
-                else:
-                    return render_template('login.html', mensaje='Credenciales inválidas.')
-
-        finally:
-            conexion.close()
+        if result and result.resultCode == 0:
+            session['usuario'] = {
+                'id': result.idUsuario,
+                'username': usuario,
+                'esAdmin': bool(result.esAdministrador)
+            }
+            if result.esAdministrador:
+                return redirect('/menu_admin')
+            else:
+                return redirect('/menu_empleado')
+        else:
+            return render_template('login.html', error='Credenciales inválidas.')
 
     return render_template('login.html')
+
+@ruta_login.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')

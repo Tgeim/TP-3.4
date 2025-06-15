@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block titulo %}Lista de Empleados{% endblock %}
+
+{% block contenido %}
+<h2>Empleados activos</h2>
+
+{% if empleados %}
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre completo</th>
+            <th>Documento</th>
+            <th>Puesto</th>
+            <th>Departamento</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for emp in empleados %}
+        <tr>
+            <td>{{ emp.id }}</td>
+            <td>{{ emp.nombreCompleto }}</td>
+            <td>{{ emp.valorDocumento }}</td>
+            <td>{{ emp.puesto }}</td>
+            <td>{{ emp.departamento }}</td>
+            <td>
+                <a href="#">Editar</a> |
+                <a href="#">Eliminar</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No hay empleados registrados.</p>
+{% endif %}
+
+<a href="/menu_admin">Volver al menú</a>
+{% endblock %}

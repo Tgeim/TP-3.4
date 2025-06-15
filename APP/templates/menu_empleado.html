@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Menú de Empleado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+</head>
+<body>
+    <h1>Bienvenido, {{ usuario.username }}</h1>
+    <h2>Menú del Empleado</h2>
+    <ul>
+        <li><a href="#">Ver planilla semanal</a></li>
+        <li><a href="#">Ver planilla mensual</a></li>
+        <li><a href="#">Ver movimientos</a></li>
+        <li><a href="#">Ver marcas</a></li>
+        <li><a href="/logout">Cerrar sesión</a></li>
+    </ul>
+</body>
+</html>
