@@ -40,7 +40,12 @@
             <td>{{ m.monto }}</td>
             <td>{{ 'Sí' if m.creadoPorSistema else 'No' }}</td>
             <td>{{ m.fechaCreacion.strftime('%Y-%m-%d') }}</td>
-
+            <td>
+                <a href="/admin/editar_movimiento/{{ m.id }}">Editar</a>
+               <form method="POST" action="/admin/eliminar_movimiento/{{ m.id }}" style="display:inline;">
+                   <button type="submit" onclick="return confirm('¿Seguro que desea eliminar este movimiento?')">Eliminar</button>
+               </form>
+            </td>
         </tr>
         {% endfor %}
     </table>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Movimiento</title>
+</head>
+<body>
+    <h2>Editar Movimiento</h2>
+
+    {% if mensaje %}
+        <p style="color: red;">{{ mensaje }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <label for="idTipoMovimiento">Tipo de Movimiento:</label>
+        <select name="idTipoMovimiento" required>
+            {% for tipo in tipos_movimiento %}
+                <option value="{{ tipo.id }}"
+                    {% if tipo.id == movimiento.idTipoMovimiento %} selected {% endif %}>
+                    {{ tipo.nombre }}
+                </option>
+            {% endfor %}
+        </select><br><br>
+
+        <label for="semana">Semana:</label>
+        <input type="date" name="semana" value="{{ movimiento.semana }}" required><br><br>
+
+        <label for="cantidadHoras">Cantidad de Horas:</label>
+        <input type="number" name="cantidadHoras" step="0.01" value="{{ movimiento.cantidadHoras }}" required><br><br>
+
+        <label for="monto">Monto:</label>
+        <input type="number" name="monto" step="0.01" value="{{ movimiento.monto }}" required><br><br>
+
+        <button type="submit">Guardar Cambios</button>
+        
+        <a href="/admin/movimientos">Cancelar</a>
+    </form>
+</body>
+</html>

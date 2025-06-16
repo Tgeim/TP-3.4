@@ -5,6 +5,8 @@ from backend.insertar_empleado import ruta_insertar_empleado
 from backend.editar_empleado import ruta_editar_empleado 
 from backend.eliminar_empleado import ruta_eliminar_empleado
 from backend.listar_movimientos import ruta_movimientos
+from backend.editar_movimiento import ruta_editar_movimiento
+from backend.eliminar_movimiento import ruta_eliminar_movimiento
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
@@ -16,6 +18,8 @@ app.register_blueprint(ruta_insertar_empleado)
 app.register_blueprint(ruta_editar_empleado)
 app.register_blueprint(ruta_eliminar_empleado)
 app.register_blueprint(ruta_movimientos)
+app.register_blueprint(ruta_editar_movimiento)
+app.register_blueprint(ruta_eliminar_movimiento)
 
 # Ruta raíz
 @app.route('/')
