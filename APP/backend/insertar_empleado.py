@@ -8,6 +8,8 @@ def nuevo_empleado():
     if 'usuario' not in session or not session['usuario']['esAdmin']:
         return redirect('/')
 
+    mensaje = None
+
     if request.method == 'POST':
         nombre_completo = request.form['nombreCompleto']
         documento_identidad = request.form['documentoIdentidad']
@@ -15,12 +17,8 @@ def nuevo_empleado():
         id_tipo_documento = int(request.form['idTipoDocumento'])
         id_departamento = int(request.form['idDepartamento'])
         id_puesto = int(request.form['idPuesto'])
-        id_post_by_user = session['usuario'].get('id')  # ⚠️ Este debe estar bien definido en sesión
+        id_post_by_user = session['usuario'].get('id')
         ip_cliente = request.remote_addr
-
-        print("DEBUG: ID del usuario que inserta:", id_post_by_user)
-        print("DEBUG: Datos recibidos POST")
-        print(nombre_completo, documento_identidad, fecha_nacimiento, id_tipo_documento, id_departamento, id_puesto, id_post_by_user)
 
         try:
             conexion = obtener_conexion()
@@ -38,14 +36,14 @@ def nuevo_empleado():
                     @inIdPostByUser = ?,
                     @inPostInIP = ?,
                     @outResultCode = @outResultCode OUTPUT;
-                SELECT @outResultCode AS resultado;
+                SELECT @outResultCode;
             """, (
                 nombre_completo, documento_identidad, fecha_nacimiento,
                 id_tipo_documento, id_departamento, id_puesto,
                 id_post_by_user, id_post_by_user, ip_cliente
             ))
+
             resultado = cursor.fetchone()[0]
-            print("DEBUG: Resultado del SP_InsertarEmpleado:", resultado)
             conexion.commit()
             conexion.close()
 
@@ -55,7 +53,6 @@ def nuevo_empleado():
                 mensaje = f"Error: El SP devolvió el código {resultado}"
 
         except Exception as e:
-            print("DEBUG: Error inesperado al insertar:", str(e))
             mensaje = f"Error inesperado: {str(e)}"
         finally:
             try:
@@ -63,41 +60,29 @@ def nuevo_empleado():
             except:
                 pass
 
-        # Si hubo error, recargamos selects y mostramos mensaje
-        try:
-            conexion = obtener_conexion()
-            cursor = conexion.cursor()
-            cursor.execute("SELECT id, nombre FROM dbo.TipoDocumento")
-            tipos_documento = cursor.fetchall()
-            cursor.execute("SELECT id, nombre FROM dbo.Departamento")
-            departamentos = cursor.fetchall()
-            cursor.execute("SELECT id, nombre FROM dbo.Puesto")
-            puestos = cursor.fetchall()
-            conexion.close()
-        except Exception as e:
-            return f"Error al recargar formulario: {str(e)}"
+    # GET o POST con error → recargar selects
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
 
-        return render_template(
-            'admin/nuevo_empleado.html',
-            mensaje=mensaje,
-            tipos_documento=tipos_documento,
-            departamentos=departamentos,
-            puestos=puestos
-        )
+        cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarTipoDocumento @outResultCode = @out OUTPUT;")
+        tipos_documento = cursor.fetchall()
 
-    # GET: mostrar formulario limpio
-    conexion = obtener_conexion()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT id, nombre FROM dbo.TipoDocumento")
-    tipos_documento = cursor.fetchall()
-    cursor.execute("SELECT id, nombre FROM dbo.Departamento")
-    departamentos = cursor.fetchall()
-    cursor.execute("SELECT id, nombre FROM dbo.Puesto")
-    puestos = cursor.fetchall()
-    conexion.close()
+        cursor.nextset()
+        cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarDepartamentos @outResultCode = @out OUTPUT;")
+        departamentos = cursor.fetchall()
+
+        cursor.nextset()
+        cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarPuestos @outResultCode = @out OUTPUT;")
+        puestos = cursor.fetchall()
+
+        conexion.close()
+    except Exception as e:
+        return f"Error cargando catálogos: {str(e)}"
 
     return render_template(
         'admin/nuevo_empleado.html',
+        mensaje=mensaje,
         tipos_documento=tipos_documento,
         departamentos=departamentos,
         puestos=puestos

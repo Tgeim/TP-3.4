@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block titulo %}Movimientos por semana{% endblock %}
+
+{% block contenido %}
+<h1>Movimientos por semana</h1>
+
+<form method="get">
+    <label>Empleado:</label>
+    <select name="idEmpleado">
+        <option value="">-- Seleccionar --</option>
+        {% for e in empleados %}
+            <option value="{{ e.id }}" {% if e.id == id_empleado %}selected{% endif %}>
+                {{ e.nombreCompleto }}
+            </option>
+        {% endfor %}
+    </select>
+
+    <label>Fecha de la semana:</label>
+    <input type="date" name="fecha" value="{{ fecha_base }}">
+    <button type="submit">Buscar</button>
+</form>
+
+{% if movimientos %}
+    <h2>Resultados</h2>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>ID Movimiento</th>
+            <th>Semana</th>
+            <th>Cantidad de Horas</th>
+            <th>Monto</th>
+            <th>Creado por sistema</th>
+            <th>Fecha de creación</th>
+        </tr>
+        {% for m in movimientos %}
+        <tr>
+            <td>{{ m.id }}</td>
+            <td>{{ m.semana }}</td>
+            <td>{{ m.cantidadHoras }}</td>
+            <td>{{ m.monto }}</td>
+            <td>{{ 'Sí' if m.creadoPorSistema else 'No' }}</td>
+            <td>{{ m.fechaCreacion.strftime('%Y-%m-%d') }}</td>
+
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+
+<p><a href="/menu_admin">Volver al menú</a></p>
+{% endblock %}

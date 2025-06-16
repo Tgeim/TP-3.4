@@ -2,6 +2,9 @@ from flask import Flask, redirect, url_for, session, render_template
 from backend.login import ruta_login
 from backend.empleados import ruta_empleados
 from backend.insertar_empleado import ruta_insertar_empleado
+from backend.editar_empleado import ruta_editar_empleado 
+from backend.eliminar_empleado import ruta_eliminar_empleado
+from backend.listar_movimientos import ruta_movimientos
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
@@ -10,15 +13,15 @@ app.secret_key = 'clave_secreta_segura'
 app.register_blueprint(ruta_login)
 app.register_blueprint(ruta_empleados)
 app.register_blueprint(ruta_insertar_empleado)
+app.register_blueprint(ruta_editar_empleado)
+app.register_blueprint(ruta_eliminar_empleado)
+app.register_blueprint(ruta_movimientos)
+
 # Ruta raíz
 @app.route('/')
 def inicio():
-
     if 'usuario' in session:
-        if session['usuario']['esAdmin']:
-            return redirect(url_for('menu_admin'))
-        else:
-            return redirect(url_for('menu_empleado'))
+        return redirect(url_for('menu_admin' if session['usuario']['esAdmin'] else 'menu_empleado'))
     return redirect(url_for('ruta_login.login'))
 
 # Menú de administrador
