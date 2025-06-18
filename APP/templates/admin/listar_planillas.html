@@ -4,12 +4,14 @@
     <meta charset="UTF-8">
     <title>Planillas</title>
     <script>
-        function toggleFechaInputs() {
+        function toggleCampos() {
             const tipo = document.getElementById('tipo').value;
-            document.getElementById('input_fecha_semana').style.display = tipo === 'semanal' ? 'inline' : 'none';
-            document.getElementById('input_fecha_mes').style.display = tipo === 'mensual' ? 'inline' : 'none';
+            const filtroEmpleado = document.getElementById('filtro_empleado').checked;
+            document.getElementById('input_fecha_mes').style.display = (tipo === 'mensual') ? 'inline' : 'none';
+            document.getElementById('input_fecha_semana').style.display = (tipo === 'semanal') ? 'inline' : 'none';
+            document.getElementById('select_empleado').style.display = filtroEmpleado ? 'inline' : 'none';
         }
-        window.onload = toggleFechaInputs;
+        window.onload = toggleCampos;
     </script>
 </head>
 <body>
@@ -17,7 +19,7 @@
 
     <form method="get" action="/admin/planillas">
         <label for="tipo">Tipo de Planilla:</label>
-        <select name="tipo" id="tipo" onchange="toggleFechaInputs()">
+        <select name="tipo" id="tipo" onchange="toggleCampos()">
             <option value="mensual" {% if tipo == 'mensual' %}selected{% endif %}>Mensual</option>
             <option value="semanal" {% if tipo == 'semanal' %}selected{% endif %}>Semanal</option>
         </select>
@@ -32,6 +34,22 @@
             <input type="date" name="fecha_semanal" value="{{ fecha_semanal or '' }}">
         </span>
 
+        <label>
+            <input type="checkbox" id="filtro_empleado" name="filtro_empleado" onchange="toggleCampos()" {% if usar_filtro_empleado %}checked{% endif %}>
+            Filtrar por empleado
+        </label>
+
+        <span id="select_empleado" style="display:none">
+            <label for="idEmpleado">Empleado:</label>
+            <select name="idEmpleado">
+                {% for emp in empleados %}
+                    <option value="{{ emp.id }}" {% if emp.id == id_empleado %}selected{% endif %}>
+                        {{ emp.nombreCompleto }}
+                    </option>
+                {% endfor %}
+            </select>
+        </span>
+
         <button type="submit">Filtrar</button>
     </form>
 
@@ -43,14 +61,12 @@
                     {% if tipo == 'semanal' %}
                         <th>Horas Ordinarias</th>
                         <th>Horas Extra</th>
-                        <th>Salario Bruto</th>
+                        <th>Bruto</th>
                         <th>Deducciones</th>
-                        <th>Salario Neto</th>
-                        <th>Semana</th>
+                        <th>Neto</th>
                     {% else %}
-                        <th>Mes</th>
-                        <th>Monto Total</th>
-                        <th>Fecha de Cálculo</th>
+                        <th>Total</th>
+                        <th>Fecha de cálculo</th>
                     {% endif %}
                 </tr>
             </thead>
@@ -64,9 +80,7 @@
                             <td>{{ p.montoBruto }}</td>
                             <td>{{ p.montoDeducciones }}</td>
                             <td>{{ p.montoNeto }}</td>
-                            <td>{{ p.semanaInicio }} a {{ p.semanaFin }}</td>
                         {% else %}
-                            <td>{{ p.mes }}</td>
                             <td>{{ p.montoTotal }}</td>
                             <td>{{ p.fechaCalculo }}</td>
                         {% endif %}
@@ -74,22 +88,6 @@
                 {% endfor %}
             </tbody>
         </table>
-    {% else %}
-        <p>No se encontraron planillas para los criterios seleccionados.</p>
-    {% endif %}
-
-    {% if planillas %}
-        <h2>Resumen</h2>
-        <p>Total de Planillas: {{ planillas|length }}</p>
-        {% if tipo == 'semanal' %}
-            <p>Total Horas Ordinarias: {{ total_horas_ordinarias }}</p>
-            <p>Total Horas Extra: {{ total_horas_extra }}</p>
-            <p>Total Salario Bruto: {{ total_salario_bruto }}</p>
-            <p>Total Deducciones: {{ total_deducciones }}</p>
-            <p>Total Salario Neto: {{ total_salario_neto }}</p>
-        {% else %}
-            <p>Monto Total de Planillas: {{ monto_total_planillas }}</p>
-        {% endif %}
     {% else %}
         <p>No se encontraron resultados.</p>
     {% endif %}

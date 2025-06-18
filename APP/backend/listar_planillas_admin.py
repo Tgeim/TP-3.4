@@ -10,41 +10,67 @@ def listar_planillas_admin():
         return redirect('/')
 
     tipo = request.args.get('tipo', default='mensual')
-    planillas = []
+    usar_filtro_empleado = request.args.get('filtro_empleado') == 'on'
+    id_empleado = request.args.get('idEmpleado', type=int)
     fecha_mensual = request.args.get('fecha_mensual')
     fecha_semanal = request.args.get('fecha_semanal')
+    planillas = []
 
     try:
         conexion = obtener_conexion()
         cursor = conexion.cursor()
 
+        # Listado mensual
         if tipo == 'mensual' and fecha_mensual:
-            # El SP espera formato 'YYYY-MM'
-            cursor.execute("""
-                DECLARE @out INT;
-                EXEC dbo.SP_ListarPlanillaMensualGlobal
-                    @inMes = ?,
-                    @outResultCode = @out OUTPUT;
-            """, (fecha_mensual,))
+            if usar_filtro_empleado and id_empleado:
+                cursor.execute("""
+                    DECLARE @out INT;
+                    EXEC dbo.SP_ListarPlanillaMensualPorEmpleado
+                        @inIdEmpleado = ?,
+                        @inMes = ?,
+                        @outResultCode = @out OUTPUT;
+                """, (id_empleado, fecha_mensual))
+            else:
+                cursor.execute("""
+                    DECLARE @out INT;
+                    EXEC dbo.SP_ListarPlanillaMensualGlobal
+                        @inMes = ?,
+                        @outResultCode = @out OUTPUT;
+                """, (fecha_mensual,))
             planillas = cursor.fetchall()
             cursor.nextset()
 
+        # Listado semanal
         elif tipo == 'semanal' and fecha_semanal:
-            # Calcular semana (inicio en lunes, fin en domingo)
             fecha = datetime.datetime.strptime(fecha_semanal, '%Y-%m-%d').date()
             inicio_semana = fecha
             fin_semana = inicio_semana + datetime.timedelta(days=6)
-            print("Semana inicio:", inicio_semana)
-            print("Semana fin:", fin_semana)
-            cursor.execute("""
-                DECLARE @out INT;
-                EXEC dbo.SP_ListarPlanillaSemanalGlobal
-                    @inSemanaInicio = ?,
-                    @inSemanaFin = ?,
-                    @outResultCode = @out OUTPUT;
-            """, (inicio_semana, fin_semana))
+
+            if usar_filtro_empleado and id_empleado:
+                cursor.execute("""
+                    DECLARE @out INT;
+                    EXEC dbo.SP_ListarPlanillaSemanalPorEmpleado
+                        @inIdEmpleado = ?,
+                        @inDesde = ?,
+                        @inHasta = ?,
+                        @outResultCode = @out OUTPUT;
+                """, (id_empleado, inicio_semana, fin_semana))
+            else:
+                cursor.execute("""
+                    DECLARE @out INT;
+                    EXEC dbo.SP_ListarPlanillaSemanalGlobal
+                        @inSemanaInicio = ?,
+                        @inSemanaFin = ?,
+                        @outResultCode = @out OUTPUT;
+                """, (inicio_semana, fin_semana))
+
             planillas = cursor.fetchall()
             cursor.nextset()
+
+        # Obtener empleados para el filtro
+        cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarEmpleados @outResultCode = @out OUTPUT;")
+        empleados = cursor.fetchall()
+        cursor.nextset()
 
         conexion.close()
 
@@ -55,4 +81,7 @@ def listar_planillas_admin():
                            planillas=planillas,
                            tipo=tipo,
                            fecha_mensual=fecha_mensual,
-                           fecha_semanal=fecha_semanal)
+                           fecha_semanal=fecha_semanal,
+                           usar_filtro_empleado=usar_filtro_empleado,
+                           id_empleado=id_empleado,
+                           empleados=empleados)
