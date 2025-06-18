@@ -1,6 +1,7 @@
 BEGIN TRY
     -- ========== DECLARACIÓN DEL XML ==========
 	DECLARE @xml XML = N'<?xml version="1.0"?>
+
 <Operacion>
   <FechaOperacion Fecha="2023-06-01">
     <NuevosEmpleados>
@@ -12078,20 +12079,21 @@ BEGIN TRY
         valorDocumento VARCHAR(30),
         idEmpleado INT
     );
-
-    -- ========== INSERTAR NUEVOS EMPLEADOS ==========
-    INSERT INTO dbo.Empleado (nombreCompleto, valorDocumento, fechaNacimiento, activo, idTipoDocumento, idDepartamento, idPuesto)
-    OUTPUT inserted.valorDocumento, inserted.id INTO #EmpleadosMap(valorDocumento, idEmpleado)
-    SELECT
-        E.value('@Nombre', 'VARCHAR(100)'),
-        E.value('@ValorTipoDocumento', 'VARCHAR(30)'),
-        E.value('@FechaNacimiento', 'DATE'),
-        1,
-        E.value('@IdTipoDocumento', 'INT'),
-        E.value('@IdDepartamento', 'INT'),
-        P.id
-    FROM @xml.nodes('//NuevoEmpleado') AS X(E)
-    JOIN dbo.Puesto P ON P.nombre = E.value('@NombrePuesto', 'VARCHAR(100)');
+	-- ========== INSERTAR NUEVOS EMPLEADOS ==========
+	INSERT INTO dbo.Empleado (nombreCompleto, valorDocumento, fechaNacimiento, activo, idTipoDocumento, idDepartamento, idPuesto)
+	OUTPUT inserted.valorDocumento, inserted.id INTO #EmpleadosMap(valorDocumento, idEmpleado)
+	SELECT
+		E.value('@Nombre', 'VARCHAR(100)'),
+		E.value('@ValorTipoDocumento', 'VARCHAR(30)'),
+		E.value('@FechaNacimiento', 'DATE'),
+		1,
+		E.value('@IdTipoDocumento', 'INT'),
+		E.value('@IdDepartamento', 'INT'),
+		P.id
+	FROM @xml.nodes('//NuevoEmpleado') AS X(E)
+	JOIN dbo.Puesto P ON P.nombre = E.value('@NombrePuesto', 'VARCHAR(100)')
+	-- AÑADIR ESTA LÍNEA PARA EVITAR DUPLICADOS
+	WHERE NOT EXISTS (SELECT 1 FROM dbo.Empleado emp WHERE emp.valorDocumento = E.value('@ValorTipoDocumento', 'VARCHAR(30)'));
 
     -- ========== CREAR USUARIOS CON CONTRASEÑA EN TEXTO PLANO ==========
     INSERT INTO dbo.Usuario (username, passwordHash, esAdministrador, idEmpleado)
