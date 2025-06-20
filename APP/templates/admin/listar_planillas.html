@@ -58,14 +58,12 @@
             <thead>
                 <tr>
                     <th>Empleado</th>
+                    <th>Horas Ordinarias</th>
+                    <th>Horas Extra</th>
+                    <th>Bruto</th>
+                    <th>Deducciones</th>
+                    <th>Neto</th>
                     {% if tipo == 'semanal' %}
-                        <th>Horas Ordinarias</th>
-                        <th>Horas Extra</th>
-                        <th>Bruto</th>
-                        <th>Deducciones</th>
-                        <th>Neto</th>
-                    {% else %}
-                        <th>Total</th>
                         <th>Fecha de cálculo</th>
                     {% endif %}
                 </tr>
@@ -74,14 +72,12 @@
                 {% for p in planillas %}
                     <tr>
                         <td>{{ p.nombreCompleto }}</td>
+                        <td>{{ p.horasOrdinarias }}</td>
+                        <td>{{ p.horasExtra }}</td>
+                        <td>{{ p.montoBruto }}</td>
+                        <td>{{ p.montoDeducciones }}</td>
+                        <td>{{ p.montoNeto }}</td>
                         {% if tipo == 'semanal' %}
-                            <td>{{ p.horasOrdinarias }}</td>
-                            <td>{{ p.horasExtra }}</td>
-                            <td>{{ p.montoBruto }}</td>
-                            <td>{{ p.montoDeducciones }}</td>
-                            <td>{{ p.montoNeto }}</td>
-                        {% else %}
-                            <td>{{ p.montoTotal }}</td>
                             <td>{{ p.fechaCalculo }}</td>
                         {% endif %}
                     </tr>

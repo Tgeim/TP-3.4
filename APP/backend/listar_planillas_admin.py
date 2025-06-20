@@ -20,7 +20,7 @@ def listar_planillas_admin():
         conexion = obtener_conexion()
         cursor = conexion.cursor()
 
-        # Listado mensual
+        # Mensual
         if tipo == 'mensual' and fecha_mensual:
             if usar_filtro_empleado and id_empleado:
                 cursor.execute("""
@@ -37,10 +37,12 @@ def listar_planillas_admin():
                         @inMes = ?,
                         @outResultCode = @out OUTPUT;
                 """, (fecha_mensual,))
-            planillas = cursor.fetchall()
+            filas = cursor.fetchall()
+            columnas = [col[0] for col in cursor.description]
+            planillas = [dict(zip(columnas, fila)) for fila in filas]
             cursor.nextset()
 
-        # Listado semanal
+        # Semanal
         elif tipo == 'semanal' and fecha_semanal:
             fecha = datetime.datetime.strptime(fecha_semanal, '%Y-%m-%d').date()
             inicio_semana = fecha
@@ -63,11 +65,17 @@ def listar_planillas_admin():
                         @inSemanaFin = ?,
                         @outResultCode = @out OUTPUT;
                 """, (inicio_semana, fin_semana))
-
-            planillas = cursor.fetchall()
+            filas = cursor.fetchall()
+            columnas = [col[0] for col in cursor.description]
+            planillas = [dict(zip(columnas, fila)) for fila in filas]
             cursor.nextset()
 
-        # Obtener empleados para el filtro
+        # Convertir fechas en planillas a texto
+        for p in planillas:
+            if 'fechaCalculo' in p and isinstance(p['fechaCalculo'], datetime.date):
+                p['fechaCalculo'] = p['fechaCalculo'].strftime('%Y-%m-%d')
+
+        # Lista de empleados
         cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarEmpleados @outResultCode = @out OUTPUT;")
         empleados = cursor.fetchall()
         cursor.nextset()
