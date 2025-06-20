@@ -3,45 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <title>Insertar Empleado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
-<body>
-    <h1>Insertar nuevo empleado</h1>
-    {% if mensaje %}
-        <p style="color:red">{{ mensaje }}</p>
-    {% endif %}
-    <form method="post">
-        <label>Nombre completo:</label>
-        <input type="text" name="nombreCompleto" required><br>
+<body class="insertar-empleado-body">
 
-        <label>Documento de identidad:</label>
-        <input type="text" name="documentoIdentidad" required><br>
+    <!-- Barra superior reutilizada -->
+    <div class="barra-superior">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-central">Insertar Empleado</div>
+        <a href="/menu_admin" class="btn-menu">Menú Principal</a>
+    </div>
 
-        <label>Fecha de nacimiento:</label>
-        <input type="date" name="fechaNacimiento" required><br>
+    <!-- Formulario estilizado -->
+    <div class="insertar-empleado-container">
+        {% if mensaje %}
+            <div class="mensaje error">{{ mensaje }}</div>
+        {% endif %}
 
-        <label>Tipo de documento:</label>
-        <select name="idTipoDocumento">
-            {% for doc in tipos_documento %}
-                <option value="{{ doc[0] }}">{{ doc[1] }}</option>
-            {% endfor %}
-        </select><br>
+        <form method="post" class="form-insertar-empleado">
+            <label for="nombreCompleto">Nombre completo:</label>
+            <input type="text" id="nombreCompleto" name="nombreCompleto" required>
 
-        <label>Departamento:</label>
-        <select name="idDepartamento">
-            {% for d in departamentos %}
-                <option value="{{ d[0] }}">{{ d[1] }}</option>
-            {% endfor %}
-        </select><br>
+            <label for="documentoIdentidad">Documento de identidad:</label>
+            <input type="text" id="documentoIdentidad" name="documentoIdentidad" required>
 
-        <label>Puesto:</label>
-        <select name="idPuesto">
-            {% for p in puestos %}
-                <option value="{{ p[0] }}">{{ p[1] }}</option>
-            {% endfor %}
-        </select><br>
+            <label for="fechaNacimiento">Fecha de nacimiento:</label>
+            <input type="date" id="fechaNacimiento" name="fechaNacimiento" required>
 
-        <button type="submit">Guardar</button>
-        <a href="/admin/empleados">Cancelar</a>
-    </form>
+            <label for="idTipoDocumento">Tipo de documento:</label>
+            <select id="idTipoDocumento" name="idTipoDocumento">
+                {% for doc in tipos_documento %}
+                    <option value="{{ doc[0] }}">{{ doc[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="idDepartamento">Departamento:</label>
+            <select id="idDepartamento" name="idDepartamento">
+                {% for d in departamentos %}
+                    <option value="{{ d[0] }}">{{ d[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <label for="idPuesto">Puesto:</label>
+            <select id="idPuesto" name="idPuesto">
+                {% for p in puestos %}
+                    <option value="{{ p[0] }}">{{ p[1] }}</option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn-insertar-guardar">Guardar</button>
+            <a href="/admin/empleados" class="btn-volver">Cancelar</a>
+        </form>
+
+        
+    </div>
 </body>
 </html>

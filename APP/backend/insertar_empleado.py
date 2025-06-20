@@ -85,5 +85,6 @@ def nuevo_empleado():
         mensaje=mensaje,
         tipos_documento=tipos_documento,
         departamentos=departamentos,
-        puestos=puestos
+        puestos=puestos,
+        usuario=session['usuario']
     )

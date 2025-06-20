@@ -492,3 +492,70 @@ button[type="submit"]:hover {
     margin-bottom: 10px;
     text-align: center;
 }
+
+
+/* === Estilo Vista Insertar Empleado === */
+.insertar-empleado-body {
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.insertar-empleado-container {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+    padding: 40px 50px;
+    max-width: 500px;
+    width: 90%;
+    margin-top: 120px;
+}
+
+.form-insertar-empleado {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-insertar-empleado label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-insertar-empleado input,
+.form-insertar-empleado select {
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-insertar-empleado input:focus,
+.form-insertar-empleado select:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+.btn-insertar-guardar {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-insertar-guardar:hover {
+    background-color: #005fcc;
+}
