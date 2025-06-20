@@ -4,7 +4,7 @@ import socket
 
 ruta_login = Blueprint('ruta_login', __name__)
 
-@ruta_login.route('/', methods=['GET', 'POST'])
+@ruta_login.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         usuario = request.form['usuario']
@@ -45,11 +45,13 @@ def login():
             else:
                 return redirect('/menu_empleado')
         else:
-            return render_template('login.html', error='Credenciales inválidas.')
+            return render_template('login.html',
+                                   error='Credenciales inválidas.',
+                                   usuario=usuario)
 
-    return render_template('login.html')
+    return render_template('login.html', usuario='')
 
 @ruta_login.route('/logout')
 def logout():
     session.clear()
-    return redirect('/')
+    return redirect('/login')

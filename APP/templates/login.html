@@ -3,12 +3,21 @@
 {% block titulo %}Iniciar sesión{% endblock %}
 
 {% block contenido %}
-<h2>Login</h2>
-<form method="post">
-    <label for="usuario">Usuario:</label>
-    <input type="text" name="usuario" required>
-    <label for="contrasena">Contraseña:</label>
-    <input type="password" name="contrasena" required>
-    <button type="submit">Ingresar</button>
-</form>
+<div class="login-container">
+    <form method="post">
+        <h2>Login</h2>
+        
+        {% if error %}
+            <p class="mensaje error">{{ error }}</p>
+        {% endif %}
+
+        <label for="usuario">Usuario:</label>
+        <input type="text" name="usuario" value="{{ usuario }}" required>
+
+        <label for="contrasena">Contraseña:</label>
+        <input type="password" name="contrasena" required>
+
+        <button type="submit">Ingresar</button>
+    </form>
+</div>
 {% endblock %}

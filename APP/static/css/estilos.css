@@ -1,10 +1,111 @@
+/* Fondo general */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f2f2f2;
-    padding: 30px;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
+
+/* Contenedor del login */
 form {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    padding: 40px 50px;
+    width: 300px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+/* Encabezado */
+h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+/* Etiquetas */
+label {
+    color: #444;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+/* Entradas */
+input[type="text"],
+input[type="password"] {
+    padding: 10px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.7);
+    transition: border-color 0.3s;
+    font-size: 14px;
+}
+
+input:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+/* Botón */
+button[type="submit"] {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+button[type="submit"]:hover {
+    background-color: #005fcc;
+    transform: scale(1.02);
+}
+.mensaje {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    text-align: center;
+    font-weight: 500;
+    border-radius: 10px;
+    backdrop-filter: blur(5px);
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+
+.mensaje.error {
+    background-color: rgba(255, 0, 0, 0.08);
+    color: #b30000;
+    border-left: 4px solid #ff4d4d;
+}
+
+.mensaje.exito {
+    background-color: rgba(0, 200, 100, 0.1);
+    color: #007a33;
+    border-left: 4px solid #33cc77;
+}
+
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+.mensaje.error {
+    color: red;
+    background-color: #ffe0e0;
+    border-left: 5px solid red;
+    padding: 0.5em;
+    border-radius: 6px;
+    margin-bottom: 1em;
 }
