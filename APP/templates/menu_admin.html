@@ -2,19 +2,29 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Menú de Administrador</title>
+    <title>Menú de Administración</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
-<body>
-    <h1>Bienvenido, {{ usuario.correo }}</h1>
-    <h2>Menú de Administración</h2>
-    <ul>
-        <li><a href="/admin/empleados">Listar Empleados</a></li>
-        <li><a href="/admin/nuevo_empleado">Insertar Empleado</a></li>
-        <li><a href="/admin/movimientos">Movimientos</a></li>
-        <li><a href="/admin/planillas">Consultar Planilla</a></li>
-        <li><a href="/admin/bitacora">Bitácora de Eventos</a></li>
-        <li><a href="/logout">Cerrar sesión</a></li>
-    </ul>
-</body>
+    <body>
+        <div class="menu-admin">
+            <div class="navbar">
+                <div class="usuario-info">
+                    <strong>{{ usuario.username }}</strong>
+                    <span class="rol">Administrador</span>
+                </div>
+                <div class="titulo-menu">
+                    <h1>Menú Principal</h1>
+                </div>
+                <a href="/logout" class="logout-btn">Cerrar sesión</a>
+            </div>
+
+            <div class="contenedor-botones">
+                <a href="/admin/empleados">Gestión de Empleados</a>
+                <a href="/admin/nuevo_empleado">Insertar Empleado</a>
+                <a href="/admin/movimientos">Movimientos</a>
+                <a href="/admin/planillas">Planillas</a>
+                <a href="/admin/bitacora">Bitácora</a>
+            </div>
+        </div>
+    </body>
 </html>

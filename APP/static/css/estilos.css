@@ -4,24 +4,22 @@ body {
     padding: 0;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: linear-gradient(to right, #f3f3f3, #e9e9e9);
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    min-height: 100vh;
 }
 
 /* Contenedor del login */
 form {
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(20px);
     border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
     padding: 40px 50px;
-    width: 300px;
+    width: 320px;
     display: flex;
     flex-direction: column;
     gap: 15px;
     border: 1px solid rgba(255, 255, 255, 0.18);
+    margin: 0 auto;
 }
 
 /* Encabezado */
@@ -29,6 +27,7 @@ h2 {
     text-align: center;
     color: #333;
     margin-bottom: 10px;
+    font-size: 22px;
 }
 
 /* Etiquetas */
@@ -42,7 +41,7 @@ label {
 input[type="text"],
 input[type="password"] {
     padding: 10px;
-    border-radius: 10px;
+    border-radius: 14px;
     border: 1px solid #ccc;
     background: rgba(255, 255, 255, 0.7);
     transition: border-color 0.3s;
@@ -56,56 +55,440 @@ input:focus {
 
 /* Botón */
 button[type="submit"] {
-    background-color: #007aff;
-    color: white;
+    background-color: #d1d1d6;
+    color: #333;
     border: none;
     padding: 10px;
-    border-radius: 12px;
+    border-radius: 14px;
     font-weight: bold;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
+    transition: background-color 0.3s, transform 0.1s, color 0.3s;
 }
 
 button[type="submit"]:hover {
-    background-color: #005fcc;
+    background-color: #007aff;
+    color: white;
     transform: scale(1.02);
 }
-.mensaje {
-    margin-bottom: 20px;
-    padding: 12px 16px;
-    font-size: 0.9rem;
-    text-align: center;
-    font-weight: 500;
-    border-radius: 10px;
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05);
-}
 
-.mensaje.error {
-    background-color: rgba(255, 0, 0, 0.08);
-    color: #b30000;
-    border-left: 4px solid #ff4d4d;
-}
-
-.mensaje.exito {
-    background-color: rgba(0, 200, 100, 0.1);
-    color: #007a33;
-    border-left: 4px solid #33cc77;
-}
-
-
+/* Login container */
 .login-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
+    min-height: 100vh;
 }
+
+/* Mensajes */
+.mensaje {
+    font-size: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(3px);
+    margin-bottom: 10px;
+    box-shadow: 0 0 8px rgba(0,0,0,0.03);
+}
+
 .mensaje.error {
-    color: red;
-    background-color: #ffe0e0;
-    border-left: 5px solid red;
-    padding: 0.5em;
-    border-radius: 6px;
-    margin-bottom: 1em;
+    color: #b00020;
+    background-color: rgba(255, 0, 0, 0.08);
+    border-left: 4px solid #ff3b30;
+}
+
+.mensaje.exito {
+    color: #007a33;
+    background-color: rgba(0, 200, 100, 0.1);
+    border-left: 4px solid #33cc77;
+}
+
+/* Barra flotante superior */
+.barra-superior {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 1700px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 999;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.usuario-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #333;
+}
+
+.usuario-info .rol {
+    font-size: 0.7rem;
+    color: #888;
+}
+
+.titulo-central {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.btn-menu {
+    background: #ddd;
+    color: #333;
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.3s ease;
+}
+
+.btn-menu:hover {
+    background: #ff4d4d;
+    color: white;
+}
+
+/* Contenido principal debajo de barra */
+.contenido-principal {
+    margin-top: 120px;
+    padding: 20px 40px;
+}
+
+/* Tabla */
+.tabla-contenedor {
+    overflow-x: auto;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.7);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    padding: 20px;
+    backdrop-filter: blur(6px);
+}
+
+.tabla-estilizada {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 0.95rem;
+}
+
+.tabla-estilizada th,
+.tabla-estilizada td {
+    padding: 12px 16px;
+    text-align: left;
+}
+
+.tabla-estilizada thead {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.tabla-estilizada tbody tr {
+    border-bottom: 1px solid #eee;
+}
+
+.tabla-estilizada tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+/* Acciones */
+.acciones {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.boton-accion {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.boton-accion.editar {
+    background-color: #007aff;
+    color: white;
+}
+
+.boton-accion.editar:hover {
+    background-color: #005fcc;
+}
+
+.boton-accion.eliminar {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.boton-accion.eliminar:hover {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* Modal overlay para confirmación */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(6px);
+    background-color: rgba(0, 0, 0, 0.2);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* Contenedor del modal */
+.modal {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 400px;
+    width: 90%;
+}
+
+/* Texto del modal */
+.modal p {
+    margin-bottom: 20px;
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+}
+/* Botones dentro del modal */
+.modal button {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 10px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Botón confirmar: gris por defecto, rojo al pasar el mouse */
+.modal .confirmar {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.modal .confirmar:hover {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+/* Botón cancelar: gris neutro, solo oscurece */
+.modal .cancelar {
+    background-color: #e0e0e0;
+    color: #333;
+}
+
+.modal .cancelar:hover {
+    background-color: #c2c2c2;
+    color: #333;
+}
+
+
+/* =============================== */
+/* === Estilos menú de admin ==== */
+/* =============================== */
+
+.menu-admin .navbar {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 1700px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 999;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.menu-admin .usuario-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #333;
+}
+
+.menu-admin .usuario-info .rol {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.menu-admin .titulo-menu h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.menu-admin .logout-btn {
+    text-decoration: none;
+    color: #444;
+    background-color: #e0e0e0;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.menu-admin .logout-btn:hover {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.menu-admin .contenedor-botones {
+    margin-top: 100px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    padding: 40px 20px;
+}
+
+.menu-admin .contenedor-botones a {
+    background: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px 50px;
+    text-decoration: none;
+    color: #333;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease, background-color 0.3s ease;
+}
+
+.menu-admin .contenedor-botones a:hover {
+    background-color: rgba(0, 122, 255, 0.12);
+    transform: translateY(-3px);
+}
+
+/* === Estilo Vista Editar Empleado === */
+.editar-empleado-body {
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.editar-empleado-container {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+    padding: 40px 50px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.form-editar-empleado {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-editar-empleado label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-editar-empleado input,
+.form-editar-empleado select {
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-editar-empleado input:focus,
+.form-editar-empleado select:focus {
+    outline: none;
+    border-color: #007aff;
+}
+
+.btn-editar-guardar {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-editar-guardar:hover {
+    background-color: #005fcc;
+}
+
+.btn-volver {
+    display: inline-block;
+    text-align: center;
+    margin-top: 10px;
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-volver:hover {
+    background-color: #999;
+    color: white;
+}
+
+.editar-empleado-container h2 {
+    text-align: center;
+    font-size: 22px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.mensaje.error {
+    background-color: rgba(255, 80, 80, 0.15);
+    color: #b00020;
+    padding: 10px 14px;
+    border-left: 4px solid #ff3b30;
+    border-radius: 10px;
+    font-size: 14px;
+    margin-bottom: 10px;
+    text-align: center;
 }

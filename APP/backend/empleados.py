@@ -31,5 +31,5 @@ def listar_empleados():
     finally:
         conexion.close()
 
-    # Renderizar plantilla con lista de empleados
-    return render_template('empleados/listar.html', empleados=empleados_dict)
+    # Renderizar plantilla con lista de empleados y sus datos
+    return render_template('empleados/listar.html', empleados=empleados_dict, usuario=session['usuario'])

@@ -3,41 +3,77 @@
 {% block titulo %}Lista de Empleados{% endblock %}
 
 {% block contenido %}
-<h2>Empleados activos</h2>
 
-{% if empleados %}
-<table border="1" cellpadding="8" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre completo</th>
-            <th>Documento</th>
-            <th>Puesto</th>
-            <th>Departamento</th>
-            <th>Acciones</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for emp in empleados %}
-        <tr>
-            <td>{{ emp.id }}</td>
-            <td>{{ emp.nombreCompleto }}</td>
-            <td>{{ emp.valorDocumento }}</td>
-            <td>{{ emp.puesto }}</td>
-            <td>{{ emp.departamento }}</td>
-            <td>
-                <a href="/admin/editar_empleado/{{ emp.id }}">Editar</a> |
-                <form action="/admin/eliminar_empleado/{{ emp.id }}" method="POST" style="display:inline;" onsubmit="return confirm('¿Deseas eliminar este empleado?');">
-                    <button type="submit">Eliminar</button>
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No hay empleados registrados.</p>
-{% endif %}
 
-<a href="/menu_admin">Volver al menú</a>
+<div class="contenido-principal">
+    <div class="barra-superior">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-central">Lista de Empleados</div>
+        <a href="/menu_admin" class="btn-menu">Menú Principal</a>
+    </div>
+
+    <div class="tabla-contenedor">
+        {% if empleados %}
+        <table class="tabla-estilizada">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre completo</th>
+                    <th>Documento</th>
+                    <th>Puesto</th>
+                    <th>Departamento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for emp in empleados %}
+                <tr>
+                    <td>{{ emp.id }}</td>
+                    <td>{{ emp.nombreCompleto }}</td>
+                    <td>{{ emp.valorDocumento }}</td>
+                    <td>{{ emp.puesto }}</td>
+                    <td>{{ emp.departamento }}</td>
+                    <td class="acciones">
+                        <a class="boton-accion editar" href="/admin/editar_empleado/{{ emp.id }}">Editar</a>
+                        <button class="boton-accion eliminar" onclick="confirmarEliminacion('{{ emp.id }}')">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No hay empleados registrados.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal para confirmación -->
+<div id="modalConfirmacion" class="modal-overlay">
+    <div class="modal">
+        <p>¿Deseas eliminar este empleado?</p>
+        <form id="formEliminar" method="POST">
+            <button type="submit" class="confirmar">Sí, eliminar</button>
+            <button type="button" class="cancelar" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function confirmarEliminacion(id) {
+        const form = document.getElementById('formEliminar');
+        form.action = `/admin/eliminar_empleado/${id}`;
+        document.getElementById('modalConfirmacion').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalConfirmacion').style.display = 'none';
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") cerrarModal();
+    });
+</script>
 {% endblock %}

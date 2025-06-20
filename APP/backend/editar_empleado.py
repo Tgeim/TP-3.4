@@ -81,7 +81,8 @@ def editar_empleado(id_empleado):
                                    'fechaNacimiento': fecha_nacimiento,
                                    'idTipoDocumento': int(id_tipo_doc),
                                    'idDepartamento': int(id_departamento),
-                                   'idPuesto': int(id_puesto)
+                                   'idPuesto': int(id_puesto),
+                                   'usuario': session['usuario']
                                },
                                tipos_documento=tipos_documento,
                                departamentos=departamentos,
@@ -121,4 +122,5 @@ def editar_empleado(id_empleado):
                                empleado=empleado_dict,
                                tipos_documento=tipos_documento,
                                departamentos=departamentos,
-                               puestos=puestos)
+                               puestos=puestos,
+                               usuario=session['usuario'])

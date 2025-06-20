@@ -5,53 +5,69 @@
     <title>Editar Empleado</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
-<body>
-    <h1>Editar Empleado</h1>
+<body class="editar-empleado-body">
 
-    {% if mensaje %}
-        <p style="color: red; font-weight: bold;">{{ mensaje }}</p>
-    {% endif %}
+    <!-- Barra superior flotante -->
+    <div class="barra-superior">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-central">Editar Empleado</div>
+        <a href="/menu_admin" class="btn-menu">Menú Principal</a>
+    </div>
 
-    <form method="post">
-        <label for="nombreCompleto">Nombre completo:</label>
-        <input type="text" id="nombreCompleto" name="nombreCompleto" value="{{ empleado.nombreCompleto }}" required><br>
+    <!-- Contenedor principal -->
+    <div class="editar-empleado-container">
 
-        <label for="documentoIdentidad">Documento de identidad:</label>
-        <input type="text" id="documentoIdentidad" name="documentoIdentidad" value="{{ empleado.valorDocumento }}" required><br>
 
-        <label for="fechaNacimiento">Fecha de nacimiento:</label>
-        <input type="date" id="fechaNacimiento" name="fechaNacimiento" value="{{ empleado.fechaNacimiento }}" required><br>
+        {% if mensaje %}
+            <p class="mensaje error">{{ mensaje }}</p>
+        {% endif %}
 
-        <label for="idTipoDocumento">Tipo de documento:</label>
-        <select id="idTipoDocumento" name="idTipoDocumento" required>
-            {% for doc in tipos_documento %}
-                <option value="{{ doc[0] }}" {% if doc[0] == empleado.idTipoDocumento %}selected{% endif %}>
-                    {{ doc[1] }}
-                </option>
-            {% endfor %}
-        </select><br>
+        <form method="post" class="form-editar-empleado">
+            <label for="nombreCompleto">Nombre completo:</label>
+            <input type="text" id="nombreCompleto" name="nombreCompleto" value="{{ empleado.nombreCompleto }}" required>
 
-        <label for="idDepartamento">Departamento:</label>
-        <select id="idDepartamento" name="idDepartamento" required>
-            {% for dep in departamentos %}
-                <option value="{{ dep[0] }}" {% if dep[0] == empleado.idDepartamento %}selected{% endif %}>
-                    {{ dep[1] }}
-                </option>
-            {% endfor %}
-        </select><br>
+            <label for="documentoIdentidad">Documento de identidad:</label>
+            <input type="text" id="documentoIdentidad" name="documentoIdentidad" value="{{ empleado.valorDocumento }}" required>
 
-        <label for="idPuesto">Puesto:</label>
-        <select id="idPuesto" name="idPuesto" required>
-            {% for p in puestos %}
-                <option value="{{ p[0] }}" {% if p[0] == empleado.idPuesto %}selected{% endif %}>
-                    {{ p[1] }}
-                </option>
-            {% endfor %}
-        </select><br>
+            <label for="fechaNacimiento">Fecha de nacimiento:</label>
+            <input type="date" id="fechaNacimiento" name="fechaNacimiento" value="{{ empleado.fechaNacimiento }}" required>
 
-        <button type="submit">Guardar cambios</button>
-    </form>
+            <label for="idTipoDocumento">Tipo de documento:</label>
+            <select id="idTipoDocumento" name="idTipoDocumento" required>
+                {% for doc in tipos_documento %}
+                    <option value="{{ doc[0] }}" {% if doc[0] == empleado.idTipoDocumento %}selected{% endif %}>
+                        {{ doc[1] }}
+                    </option>
+                {% endfor %}
+            </select>
 
-    <p><a href="/admin/empleados">Volver a la lista de empleados</a></p>
+            <label for="idDepartamento">Departamento:</label>
+            <select id="idDepartamento" name="idDepartamento" required>
+                {% for dep in departamentos %}
+                    <option value="{{ dep[0] }}" {% if dep[0] == empleado.idDepartamento %}selected{% endif %}>
+                        {{ dep[1] }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label for="idPuesto">Puesto:</label>
+            <select id="idPuesto" name="idPuesto" required>
+                {% for p in puestos %}
+                    <option value="{{ p[0] }}" {% if p[0] == empleado.idPuesto %}selected{% endif %}>
+                        {{ p[1] }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button type="submit" class="btn-editar-guardar">Guardar cambios</button>
+            <a href="/admin/empleados" class="btn-volver">Volver a la lista de empleados</a>
+        </form>
+
+        
+    </div>
+
 </body>
 </html>
