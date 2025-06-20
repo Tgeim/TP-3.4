@@ -8,6 +8,7 @@ from backend.listar_movimientos import ruta_movimientos
 from backend.editar_movimiento import ruta_editar_movimiento
 from backend.eliminar_movimiento import ruta_eliminar_movimiento
 from backend.listar_planillas_admin import ruta_planillas_admin
+from backend.bitacora_admin import ruta_bitacora_admin
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
@@ -22,6 +23,7 @@ app.register_blueprint(ruta_movimientos)
 app.register_blueprint(ruta_editar_movimiento)
 app.register_blueprint(ruta_eliminar_movimiento)
 app.register_blueprint(ruta_planillas_admin)
+app.register_blueprint(ruta_bitacora_admin)
 
 # Ruta raíz
 @app.route('/')

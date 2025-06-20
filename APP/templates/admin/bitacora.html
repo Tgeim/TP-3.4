@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Bitácora de Eventos</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #555;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #eee;
+        }
+        pre {
+            background-color: #f9f9f9;
+            padding: 10px;
+            border: 1px dashed #ccc;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bitácora de Eventos</h1>
+
+    {% if bitacora %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Usuario</th>
+                    <th>Tipo de Evento</th>
+                    <th>Descripción</th>
+                    <th>PostBy</th>
+                    <th>IP</th>
+                    <th>Fecha</th>
+                    <th>Antes</th>
+                    <th>Después</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for evento in bitacora %}
+                    <tr>
+                        <td>{{ evento.id }}</td>
+                        <td>{{ evento.nombreUsuario }}</td>
+                        <td>{{ evento.tipoEvento }}</td>
+                        <td>{{ evento.descripcion }}</td>
+                        <td>{{ evento.postBy }}</td>
+                        <td>{{ evento.postInIP }}</td>
+                        <td>{{ evento.postTime.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            {% if evento.jsonAntes %}
+                                <pre>{{ evento.jsonAntes }}</pre>
+                            {% else %}
+                                <em>Sin datos</em>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if evento.jsonDespues %}
+                                <pre>{{ evento.jsonDespues }}</pre>
+                            {% else %}
+                                <em>Sin datos</em>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No se encontraron eventos registrados en la bitácora.</p>
+    {% endif %}
+
+    <a href="/menu_admin">Volver al menú</a>
+</body>
+</html>

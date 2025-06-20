@@ -105,14 +105,7 @@ CREATE TABLE dbo.PlanillaSemanal (
     fechaCalculo DATETIME NOT NULL
 );
 
--- Tabla PlanillaMensual
-CREATE TABLE dbo.PlanillaMensual (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    idEmpleado INT NOT NULL FOREIGN KEY REFERENCES dbo.Empleado(id),
-    mes VARCHAR(7) NOT NULL,
-    montoTotal FLOAT NOT NULL,
-    fechaCalculo DATETIME NOT NULL
-);
+
 
 -- Tabla Usuario
 CREATE TABLE dbo.Usuario (
