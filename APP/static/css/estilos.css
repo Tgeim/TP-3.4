@@ -142,13 +142,14 @@ button[type="submit"]:hover {
 }
 
 .btn-menu {
-    background: #ddd;
-    color: #333;
-    padding: 8px 14px;
-    border-radius: 10px;
-    font-weight: 500;
     text-decoration: none;
-    transition: background 0.3s ease;
+    color: #444;
+    background-color: #e0e0e0;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .btn-menu:hover {
