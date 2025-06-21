@@ -715,3 +715,112 @@ button[type="submit"]:hover {
     outline: none;
     border-color: #007aff;
 }
+
+/* === Estilo Vista Planillas === */
+.listar-planillas-body {
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.planillas-container {
+    margin-top: 120px;
+    padding: 30px 40px;
+}
+
+.formulario-planillas {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.06);
+    margin-bottom: 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+}
+
+.filtro-opciones label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.filtro-opciones input,
+.filtro-opciones select {
+    padding: 8px 10px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+}
+
+.boton-filtrar {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.boton-filtrar:hover {
+    background-color: #005fcc;
+}
+
+/* === Vista Bitácora === */
+.listar-bitacora-body {
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.bitacora-container {
+    max-width: 95%;
+    margin: 120px auto 40px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* Tabla */
+.tabla-estilizada {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.tabla-estilizada th,
+.tabla-estilizada td {
+    border: 1px solid #ccc;
+    padding: 12px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 13px;
+}
+
+.tabla-estilizada th {
+    background-color: #f0f0f0;
+    color: #333;
+    font-weight: 600;
+}
+
+/* JSON estilo */
+.json-preview {
+    background: rgba(255, 255, 255, 0.8);
+    border-left: 3px solid #007aff;
+    padding: 10px;
+    border-radius: 10px;
+    white-space: pre-wrap;
+    font-family: monospace;
+    font-size: 13px;
+    color: #444;
+}

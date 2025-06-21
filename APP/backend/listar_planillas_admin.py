@@ -92,4 +92,5 @@ def listar_planillas_admin():
                            fecha_semanal=fecha_semanal,
                            usar_filtro_empleado=usar_filtro_empleado,
                            id_empleado=id_empleado,
-                           empleados=empleados)
+                           empleados=empleados,
+                           usuario=session['usuario'])

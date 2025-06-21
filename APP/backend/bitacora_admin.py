@@ -47,4 +47,6 @@ def ver_bitacora_admin():
     except Exception as e:
         return f"Error cargando bitácora: {e}", 500
 
-    return render_template('admin/bitacora.html', bitacora=bitacora)
+    return render_template('admin/bitacora.html',
+                            bitacora=bitacora,
+                            usuario=session['usuario'])

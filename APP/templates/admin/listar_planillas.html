@@ -2,92 +2,114 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Planillas</title>
+    <title>Listado de Planillas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
     <script>
         function toggleCampos() {
             const tipo = document.getElementById('tipo').value;
             const filtroEmpleado = document.getElementById('filtro_empleado').checked;
-            document.getElementById('input_fecha_mes').style.display = (tipo === 'mensual') ? 'inline' : 'none';
-            document.getElementById('input_fecha_semana').style.display = (tipo === 'semanal') ? 'inline' : 'none';
-            document.getElementById('select_empleado').style.display = filtroEmpleado ? 'inline' : 'none';
+
+            document.getElementById('input_fecha_mes').style.display = (tipo === 'mensual') ? 'block' : 'none';
+            document.getElementById('input_fecha_semana').style.display = (tipo === 'semanal') ? 'block' : 'none';
+
+            // En lugar de ocultar el select, lo deshabilitamos
+            const selectEmpleado = document.getElementById('idEmpleado');
+            if (selectEmpleado) {
+                selectEmpleado.disabled = !filtroEmpleado;
+            }
         }
         window.onload = toggleCampos;
     </script>
 </head>
-<body>
-    <h1>Listado de Planillas</h1>
+<body class="listar-planillas-body">
 
-    <form method="get" action="/admin/planillas">
-        <label for="tipo">Tipo de Planilla:</label>
-        <select name="tipo" id="tipo" onchange="toggleCampos()">
-            <option value="mensual" {% if tipo == 'mensual' %}selected{% endif %}>Mensual</option>
-            <option value="semanal" {% if tipo == 'semanal' %}selected{% endif %}>Semanal</option>
-        </select>
+    <!-- Barra superior -->
+    <div class="barra-superior">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-central">Listado de Planillas</div>
+        <a href="/menu_admin" class="btn-menu">Menú Principal</a>
+    </div>
 
-        <span id="input_fecha_mes" style="display:none">
-            <label for="fecha_mensual">Mes:</label>
-            <input type="month" name="fecha_mensual" value="{{ fecha_mensual or '' }}">
-        </span>
+    <div class="planillas-container">
 
-        <span id="input_fecha_semana" style="display:none">
-            <label for="fecha_semanal">Fecha base:</label>
-            <input type="date" name="fecha_semanal" value="{{ fecha_semanal or '' }}">
-        </span>
+        <form method="get" action="/admin/planillas" class="formulario-planillas">
+            <div class="filtro-opciones">
+                <label for="tipo">Tipo de Planilla:</label>
+                <select name="tipo" id="tipo" onchange="toggleCampos()">
+                    <option value="mensual" {% if tipo == 'mensual' %}selected{% endif %}>Mensual</option>
+                    <option value="semanal" {% if tipo == 'semanal' %}selected{% endif %}>Semanal</option>
+                </select>
 
-        <label>
-            <input type="checkbox" id="filtro_empleado" name="filtro_empleado" onchange="toggleCampos()" {% if usar_filtro_empleado %}checked{% endif %}>
-            Filtrar por empleado
-        </label>
+                <div id="input_fecha_mes">
+                    <label for="fecha_mensual">Mes:</label>
+                    <input type="month" name="fecha_mensual" value="{{ fecha_mensual or '' }}">
+                </div>
 
-        <span id="select_empleado" style="display:none">
-            <label for="idEmpleado">Empleado:</label>
-            <select name="idEmpleado">
-                {% for emp in empleados %}
-                    <option value="{{ emp.id }}" {% if emp.id == id_empleado %}selected{% endif %}>
-                        {{ emp.nombreCompleto }}
-                    </option>
-                {% endfor %}
-            </select>
-        </span>
+                <div id="input_fecha_semana">
+                    <label for="fecha_semanal">Fecha base:</label>
+                    <input type="date" name="fecha_semanal" value="{{ fecha_semanal or '' }}">
+                </div>
 
-        <button type="submit">Filtrar</button>
-    </form>
+                <label>
+                    <input type="checkbox" id="filtro_empleado" name="filtro_empleado" onchange="toggleCampos()" {% if usar_filtro_empleado %}checked{% endif %}>
+                    Filtrar por empleado
+                </label>
 
-    {% if planillas %}
-        <table border="1">
-            <thead>
-                <tr>
-                    <th>Empleado</th>
-                    <th>Horas Ordinarias</th>
-                    <th>Horas Extra</th>
-                    <th>Bruto</th>
-                    <th>Deducciones</th>
-                    <th>Neto</th>
-                    {% if tipo == 'semanal' %}
-                        <th>Fecha de cálculo</th>
-                    {% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in planillas %}
+                <div id="select_empleado">
+                    <label for="idEmpleado">Empleado:</label>
+                    <select name="idEmpleado" id="idEmpleado">
+                        {% for emp in empleados %}
+                            <option value="{{ emp.id }}" {% if emp.id == id_empleado %}selected{% endif %}>
+                                {{ emp.nombreCompleto }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="boton-filtrar">Filtrar</button>
+            </div>
+        </form>
+
+        {% if planillas %}
+        <div class="tabla-contenedor">
+            <table class="tabla-estilizada">
+                <thead>
                     <tr>
-                        <td>{{ p.nombreCompleto }}</td>
-                        <td>{{ p.horasOrdinarias }}</td>
-                        <td>{{ p.horasExtra }}</td>
-                        <td>{{ p.montoBruto }}</td>
-                        <td>{{ p.montoDeducciones }}</td>
-                        <td>{{ p.montoNeto }}</td>
+                        <th>Empleado</th>
+                        <th>Horas Ordinarias</th>
+                        <th>Horas Extra</th>
+                        <th>Bruto</th>
+                        <th>Deducciones</th>
+                        <th>Neto</th>
                         {% if tipo == 'semanal' %}
-                            <td>{{ p.fechaCalculo }}</td>
+                            <th>Fecha de cálculo</th>
                         {% endif %}
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No se encontraron resultados.</p>
-    {% endif %}
+                </thead>
+                <tbody>
+                    {% for p in planillas %}
+                        <tr>
+                            <td>{{ p.nombreCompleto }}</td>
+                            <td>{{ p.horasOrdinarias }}</td>
+                            <td>{{ p.horasExtra }}</td>
+                            <td>{{ p.montoBruto }}</td>
+                            <td>{{ p.montoDeducciones }}</td>
+                            <td>{{ p.montoNeto }}</td>
+                            {% if tipo == 'semanal' %}
+                                <td>{{ p.fechaCalculo }}</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif fecha_mensual or fecha_semanal %}
+            <p class="mensaje error" style="margin-top: 20px;">No se encontraron resultados.</p>
+        {% endif %}
 
-    <a href="/menu_admin">Volver al menú</a>
+    </div>
 </body>
 </html>
