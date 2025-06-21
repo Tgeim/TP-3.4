@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, session, redirect
+from flask import Blueprint, render_template, request, session, redirect, jsonify
 from backend.conexion import obtener_conexion
+from backend.deducciones_detalladas import obtener_deducciones_semanales, obtener_deducciones_mensuales
 import datetime
 
 ruta_planillas_admin = Blueprint('ruta_planillas_admin', __name__)
@@ -94,3 +95,30 @@ def listar_planillas_admin():
                            id_empleado=id_empleado,
                            empleados=empleados,
                            usuario=session['usuario'])
+
+
+@ruta_planillas_admin.route('/admin/planillas/detalle_deducciones', methods=['GET'])
+def detalle_deducciones():
+    if 'usuario' not in session or not session['usuario']['esAdmin']:
+        return jsonify({'error': 'No autorizado'}), 403
+
+    tipo = request.args.get('tipo')
+    id_empleado = request.args.get('idEmpleado', type=int)
+    fecha = request.args.get('fecha')
+    print("Tipo:", tipo, "ID Empleado:", id_empleado, "Fecha:", fecha)
+    try:
+        if tipo == 'mensual':
+            if len(fecha) == 7:
+                fecha += '-01'
+            detalles = obtener_deducciones_mensuales(id_empleado, fecha)
+        elif tipo == 'semanal':
+            print("Obteniendo deducciones semanales para el empleado:", id_empleado, "en la fecha:", fecha)
+            detalles = obtener_deducciones_semanales(id_empleado, fecha)
+        else:
+            return jsonify({'error': 'Tipo inválido'}), 400
+
+
+        return jsonify({ "deducciones": detalles })  # <- ESTE CAMBIO ES LA CLAVE
+
+    except Exception as e:
+        return jsonify({'error': f'Error consultando deducciones: {e}'}), 500

@@ -27,6 +27,7 @@ BEGIN
         -- Listar planillas semanales en rango
         SELECT
             id,
+            idEmpleado,
             semanaInicio,
             semanaFin,
             horasOrdinarias,
