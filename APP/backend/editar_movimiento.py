@@ -8,6 +8,11 @@ def editar_movimiento(id_movimiento):
     if 'usuario' not in session or not session['usuario']['esAdmin']:
         return redirect('/')
 
+    # Captura de parámetros GET para mantener el filtro al volver
+    fecha = request.args.get('fecha', '')
+    usar_filtro = request.args.get('usar_filtro', '')
+    id_empleado = request.args.get('idEmpleado', '')
+
     conexion = obtener_conexion()
     cursor = conexion.cursor()
 
@@ -35,7 +40,7 @@ def editar_movimiento(id_movimiento):
             datos = dict(zip(columnas, fila))
             cursor.nextset()
 
-            id_empleado = datos['idEmpleado']
+            id_empleado_mov = datos['idEmpleado']
             creado_por_sistema = datos['creadoPorSistema']
 
             # Ejecutar actualización
@@ -54,7 +59,7 @@ def editar_movimiento(id_movimiento):
                     @outResultCode = @out OUTPUT;
                 SELECT @out AS resultado;
             """, (
-                id_movimiento, id_empleado, tipo, semana, horas, monto,
+                id_movimiento, id_empleado_mov, tipo, semana, horas, monto,
                 creado_por_sistema, id_usuario, ip
             ))
 
@@ -64,7 +69,11 @@ def editar_movimiento(id_movimiento):
             if result and result[0] == 0:
                 conexion.commit()
                 conexion.close()
-                return redirect('/admin/movimientos')
+                # Redirección con filtros restaurados
+                redireccion = f"/admin/movimientos?fecha={fecha}"
+                if usar_filtro == '1':
+                    redireccion += f"&usar_filtro=1&idEmpleado={id_empleado}"
+                return redirect(redireccion)
 
             mensaje = f"Error al editar movimiento. Código: {result[0] if result else 'desconocido'}"
 
@@ -89,7 +98,8 @@ def editar_movimiento(id_movimiento):
                                    'cantidadHoras': horas,
                                    'monto': monto
                                },
-                               tipos_movimiento=tipos_movimiento)
+                               tipos_movimiento=tipos_movimiento,
+                               usuario=session['usuario'])
 
     else:
         try:
@@ -115,4 +125,5 @@ def editar_movimiento(id_movimiento):
         conexion.close()
         return render_template("admin/editar_movimiento.html",
                                movimiento=movimiento_dict,
-                               tipos_movimiento=tipos_movimiento)
+                               tipos_movimiento=tipos_movimiento,
+                               usuario=session['usuario'])

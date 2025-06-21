@@ -3,37 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <title>Editar Movimiento</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
-<body>
-    <h2>Editar Movimiento</h2>
+<body class="editar-movimiento-body">
 
-    {% if mensaje %}
-        <p style="color: red;">{{ mensaje }}</p>
-    {% endif %}
+    <!-- Barra superior flotante -->
+    <div class="barra-superior">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-central">Editar Movimiento</div>
+        <a href="/menu_admin" class="btn-menu">Menú Principal</a>
+    </div>
 
-    <form method="POST">
-        <label for="idTipoMovimiento">Tipo de Movimiento:</label>
-        <select name="idTipoMovimiento" required>
-            {% for tipo in tipos_movimiento %}
-                <option value="{{ tipo.id }}"
-                    {% if tipo.id == movimiento.idTipoMovimiento %} selected {% endif %}>
-                    {{ tipo.nombre }}
-                </option>
-            {% endfor %}
-        </select><br><br>
+    <!-- Contenedor principal -->
+    <div class="editar-movimiento-container">
 
-        <label for="semana">Semana:</label>
-        <input type="date" name="semana" value="{{ movimiento.semana }}" required><br><br>
+        {% if mensaje %}
+            <p class="mensaje error">{{ mensaje }}</p>
+        {% endif %}
 
-        <label for="cantidadHoras">Cantidad de Horas:</label>
-        <input type="number" name="cantidadHoras" step="0.01" value="{{ movimiento.cantidadHoras }}" required><br><br>
+        <form method="POST" class="form-editar-movimiento">
+            <label for="idTipoMovimiento">Tipo de Movimiento:</label>
+            <select name="idTipoMovimiento" required>
+                {% for tipo in tipos_movimiento %}
+                    <option value="{{ tipo.id }}"
+                        {% if tipo.id == movimiento.idTipoMovimiento %} selected {% endif %}>
+                        {{ tipo.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
 
-        <label for="monto">Monto:</label>
-        <input type="number" name="monto" step="0.01" value="{{ movimiento.monto }}" required><br><br>
+            <label for="semana">Semana:</label>
+            <input type="date" name="semana" value="{{ movimiento.semana }}" required>
 
-        <button type="submit">Guardar Cambios</button>
-        
-        <a href="/admin/movimientos">Cancelar</a>
-    </form>
+            <label for="cantidadHoras">Cantidad de Horas:</label>
+            <input type="number" name="cantidadHoras" step="0.01" value="{{ movimiento.cantidadHoras }}" required>
+
+            <label for="monto">Monto:</label>
+            <input type="number" name="monto" step="0.01" value="{{ movimiento.monto }}" required>
+
+            <button type="submit" class="btn-editar-guardar">Guardar cambios</button>
+            <a href="/admin/movimientos" class="btn-volver">Volver a la lista de movimientos</a>
+        </form>
+
+    </div>
 </body>
 </html>

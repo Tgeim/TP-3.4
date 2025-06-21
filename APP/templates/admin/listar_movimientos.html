@@ -3,53 +3,122 @@
 {% block titulo %}Movimientos por semana{% endblock %}
 
 {% block contenido %}
-<h1>Movimientos por semana</h1>
+<div class="listar-movimientos-container">
 
-<form method="get">
-    <label>Empleado:</label>
-    <select name="idEmpleado">
-        <option value="">-- Seleccionar --</option>
-        {% for e in empleados %}
-            <option value="{{ e.id }}" {% if e.id == id_empleado %}selected{% endif %}>
-                {{ e.nombreCompleto }}
-            </option>
-        {% endfor %}
-    </select>
+    <!-- Barra superior específica para esta vista -->
+    <div class="navbar-movimientos">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Administrador</div>
+        </div>
+        <div class="titulo-menu">
+            <h1>Movimientos por semana</h1>
+        </div>
+        <a href="/menu_admin" class="btn-menu">Menú principal</a>
+    </div>
 
-    <label>Fecha de la semana:</label>
-    <input type="date" name="fecha" value="{{ fecha_base }}">
-    <button type="submit">Buscar</button>
-</form>
+    <!-- Filtro -->
+    <form method="get" class="formulario-movimientos">
+        <div class="filtro-opciones">
+            <label class="checkbox-opcion">
+                <input type="checkbox" name="usar_filtro" value="1" {% if usar_filtro %}checked{% endif %} onchange="this.form.submit()">
+                Filtrar por empleado
+            </label>
 
-{% if movimientos %}
-    <h2>Resultados</h2>
-    <table border="1" cellpadding="6">
-        <tr>
-            <th>ID Movimiento</th>
-            <th>Semana</th>
-            <th>Cantidad de Horas</th>
-            <th>Monto</th>
-            <th>Creado por sistema</th>
-            <th>Fecha de creación</th>
-        </tr>
-        {% for m in movimientos %}
-        <tr>
-            <td>{{ m.id }}</td>
-            <td>{{ m.semana }}</td>
-            <td>{{ m.cantidadHoras }}</td>
-            <td>{{ m.monto }}</td>
-            <td>{{ 'Sí' if m.creadoPorSistema else 'No' }}</td>
-            <td>{{ m.fechaCreacion.strftime('%Y-%m-%d') }}</td>
-            <td>
-                <a href="/admin/editar_movimiento/{{ m.id }}">Editar</a>
-               <form method="POST" action="/admin/eliminar_movimiento/{{ m.id }}" style="display:inline;">
-                   <button type="submit" onclick="return confirm('¿Seguro que desea eliminar este movimiento?')">Eliminar</button>
-               </form>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
-{% endif %}
+            <label>Empleado:</label>
+            <select name="idEmpleado" {% if not usar_filtro %}disabled{% endif %}>
+                <option value="">-- Seleccionar --</option>
+                {% for e in empleados %}
+                    <option value="{{ e.id }}" {% if e.id == id_empleado %}selected{% endif %}>
+                        {{ e.nombreCompleto }}
+                    </option>
+                {% endfor %}
+            </select>
 
-<p><a href="/menu_admin">Volver al menú</a></p>
+            <label>Fecha de la semana:</label>
+            <input type="date" name="fecha" value="{{ fecha_base }}">
+            <button type="submit" class="boton-filtrar">Buscar</button>
+        </div>
+    </form>
+
+    {% if movimientos %}
+    <div class="tabla-contenedor">
+        <table class="tabla-estilizada">
+            <thead>
+                <tr>
+                    <th>ID Movimiento</th>
+                    <th>Empleado</th>
+                    <th>Semana</th>
+                    <th>Cantidad de Horas</th>
+                    <th>Monto</th>
+                    <th>Creado por sistema</th>
+                    <th>Fecha de creación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td>{{ m.id }}</td>
+                    <td>{{ m.nombreEmpleado }}</td>
+                    <td>{{ m.semana }}</td>
+                    <td>{{ m.cantidadHoras }}</td>
+                    <td>{{ m.monto }}</td>
+                    <td>{{ 'Sí' if m.creadoPorSistema else 'No' }}</td>
+                    <td>{{ m.fechaCreacion.strftime('%Y-%m-%d') }}</td>
+                    <td class="acciones">
+                        <a href="/admin/editar_movimiento/{{ m.id }}?fecha={{ fecha_base }}{% if usar_filtro %}&usar_filtro=1&idEmpleado={{ id_empleado }}{% endif %}" class="boton-accion editar">Editar</a>
+                        <button class="boton-accion eliminar" onclick="confirmarEliminacion('{{ m.id }}')">Eliminar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Modal para confirmación -->
+<div id="modalConfirmacion" class="modal-overlay">
+    <div class="modal">
+        <p>¿Deseas eliminar este movimiento?</p>
+        <form id="formEliminar" method="POST">
+            <button type="submit" class="confirmar">Sí, eliminar</button>
+            <button type="button" class="cancelar" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    function confirmarEliminacion(id) {
+        const form = document.getElementById('formEliminar');
+
+        // Obtener valores del filtro actuales
+        const idEmpleado = document.querySelector('[name="idEmpleado"]').value;
+        const usarFiltro = document.querySelector('[name="usar_filtro"]').checked ? '1' : '0';
+        const fecha = document.querySelector('[name="fecha"]').value;
+
+        // Armar la URL con los parámetros GET
+        const queryParams = new URLSearchParams({
+            idEmpleado: idEmpleado,
+            usar_filtro: usarFiltro,
+            fecha: fecha
+        });
+
+        // Establecer la acción del formulario con los parámetros incluidos
+        form.action = `/admin/eliminar_movimiento/${id}?${queryParams.toString()}`;
+
+        // Mostrar el modal
+        document.getElementById('modalConfirmacion').style.display = 'flex';
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalConfirmacion').style.display = 'none';
+    }
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") cerrarModal();
+    });
+</script>
+
 {% endblock %}

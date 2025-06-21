@@ -559,3 +559,159 @@ button[type="submit"]:hover {
 .btn-insertar-guardar:hover {
     background-color: #005fcc;
 }
+
+/* === Estilo Vista Listar Movimientos === */
+.listar-movimientos-container {
+    margin-top: 120px;
+    padding: 30px 40px;
+}
+
+.formulario-movimientos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.04);
+    backdrop-filter: blur(10px);
+    margin-bottom: 30px;
+}
+
+.filtro-opciones label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.filtro-opciones input[type="date"],
+.filtro-opciones select {
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.boton-filtrar {
+    background-color: #007aff;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.boton-filtrar:hover {
+    background-color: #005fcc;
+}
+/* ===== Barra superior específica para vista de movimientos ===== */
+.navbar-movimientos {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 92%;
+    max-width: 1700px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    z-index: 999;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.navbar-movimientos .usuario-info {
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    color: #333;
+}
+
+.navbar-movimientos .usuario-info .rol {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+}
+
+.navbar-movimientos .titulo-menu h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.navbar-movimientos .btn-menu {
+    text-decoration: none;
+    color: #444;
+    background-color: #e0e0e0;
+    padding: 8px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar-movimientos .btn-menu:hover {
+    background-color:  #ff4d4d;
+    color: white;
+}
+
+/* === Estilo Vista Editar Movimiento === */
+.editar-movimiento-body {
+    background: linear-gradient(to right, #f3f3f3, #e9e9e9);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.editar-movimiento-container {
+    background: rgba(255, 255, 255, 0.5);
+    backdrop-filter: blur(16px);
+    border-radius: 20px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.05);
+    padding: 40px 50px;
+    max-width: 500px;
+    width: 90%;
+    margin-top: 120px;
+}
+
+.form-editar-movimiento {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-editar-movimiento label {
+    font-weight: 500;
+    font-size: 14px;
+    color: #333;
+}
+
+.form-editar-movimiento input,
+.form-editar-movimiento select {
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid #ccc;
+    background: rgba(255, 255, 255, 0.7);
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-editar-movimiento input:focus,
+.form-editar-movimiento select:focus {
+    outline: none;
+    border-color: #007aff;
+}

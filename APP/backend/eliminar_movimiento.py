@@ -8,6 +8,11 @@ def eliminar_movimiento(id_movimiento):
     if 'usuario' not in session or not session['usuario']['esAdmin']:
         return redirect('/')
 
+    # Obtener filtros actuales desde la URL
+    id_empleado = request.args.get('idEmpleado', default='', type=str)
+    usar_filtro = request.args.get('usar_filtro', default='', type=str)
+    fecha = request.args.get('fecha', default='', type=str)
+
     conexion = obtener_conexion()
     cursor = conexion.cursor()
 
@@ -39,4 +44,9 @@ def eliminar_movimiento(id_movimiento):
     finally:
         conexion.close()
 
-    return redirect('/admin/movimientos')
+    # Redirigir con filtros activos
+    url = f"/admin/movimientos?fecha={fecha}"
+    if usar_filtro == '1':
+        url += f"&usar_filtro=1&idEmpleado={id_empleado}"
+
+    return redirect(url)

@@ -4,12 +4,13 @@ import datetime
 
 ruta_movimientos = Blueprint('ruta_movimientos', __name__)
 
-@ruta_movimientos.route('/admin/movimientos', methods=['GET', 'POST'])
+@ruta_movimientos.route('/admin/movimientos', methods=['GET'])
 def listar_movimientos():
     if 'usuario' not in session or not session['usuario']['esAdmin']:
         return redirect('/')
 
-    id_empleado = request.args.get('idEmpleado', default=None, type=int)
+    id_empleado = request.args.get('idEmpleado', type=int)
+    usar_filtro = request.args.get('usar_filtro', default='0') == '1'
     fecha_param = request.args.get('fecha', default=datetime.date.today().isoformat())
 
     try:
@@ -26,13 +27,12 @@ def listar_movimientos():
         conexion = obtener_conexion()
         cursor = conexion.cursor()
 
-        # Listar empleados
+        # Obtener empleados
         cursor.execute("DECLARE @out INT; EXEC dbo.SP_ListarEmpleados @outResultCode = @out OUTPUT;")
         empleados = cursor.fetchall()
         cursor.nextset()
 
-        # Si se seleccionó empleado
-        if id_empleado:
+        if usar_filtro and id_empleado:
             cursor.execute("""
                 DECLARE @out INT;
                 EXEC dbo.SP_ListarMovimientosPorEmpleadoYSemana
@@ -40,9 +40,16 @@ def listar_movimientos():
                     @inFecha = ?,
                     @outResultCode = @out OUTPUT;
             """, (id_empleado, fecha_semana_str))
-            movimientos = cursor.fetchall()
-            cursor.nextset()
-
+        else:
+            cursor.execute("""
+                DECLARE @out INT;
+                EXEC dbo.SP_ListarMovimientosPorSemanaGlobal
+                    @inFecha = ?,
+                    @outResultCode = @out OUTPUT;
+            """, (fecha_semana_str,))
+        
+        movimientos = cursor.fetchall()
+        cursor.nextset()
         conexion.close()
 
     except Exception as e:
@@ -52,4 +59,6 @@ def listar_movimientos():
                            empleados=empleados,
                            movimientos=movimientos,
                            id_empleado=id_empleado,
-                           fecha_base=fecha_param)
+                           fecha_base=fecha_param,
+                           usar_filtro=usar_filtro,
+                           usuario=session['usuario'])
