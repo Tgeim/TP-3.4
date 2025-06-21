@@ -45,7 +45,8 @@
             <input type="number" name="monto" step="0.01" value="{{ movimiento.monto }}" required>
 
             <button type="submit" class="btn-editar-guardar">Guardar cambios</button>
-            <a href="/admin/movimientos" class="btn-volver">Volver a la lista de movimientos</a>
+            <a href="/admin/movimientos?fecha={{ request.args.get('fecha', '') }}{% if request.args.get('usar_filtro') == '1' %}&usar_filtro=1&idEmpleado={{ request.args.get('idEmpleado', '') }}{% endif %}" class="btn-volver">Volver a la lista de movimientos</a>
+
         </form>
 
     </div>

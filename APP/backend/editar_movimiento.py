@@ -69,7 +69,6 @@ def editar_movimiento(id_movimiento):
             if result and result[0] == 0:
                 conexion.commit()
                 conexion.close()
-                # Redirección con filtros restaurados
                 redireccion = f"/admin/movimientos?fecha={fecha}"
                 if usar_filtro == '1':
                     redireccion += f"&usar_filtro=1&idEmpleado={id_empleado}"
@@ -99,7 +98,10 @@ def editar_movimiento(id_movimiento):
                                    'monto': monto
                                },
                                tipos_movimiento=tipos_movimiento,
-                               usuario=session['usuario'])
+                               usuario=session['usuario'],
+                               fecha=fecha,
+                               usar_filtro=usar_filtro,
+                               id_empleado=id_empleado)
 
     else:
         try:
@@ -126,4 +128,7 @@ def editar_movimiento(id_movimiento):
         return render_template("admin/editar_movimiento.html",
                                movimiento=movimiento_dict,
                                tipos_movimiento=tipos_movimiento,
-                               usuario=session['usuario'])
+                               usuario=session['usuario'],
+                               fecha=fecha,
+                               usar_filtro=usar_filtro,
+                               id_empleado=id_empleado)
