@@ -1,6 +1,6 @@
 -- ===============================================================
--- Script de Simulación de Carga General (Versión Optimizada)
--- Autor: Brandon Canales Alvarado (Refactorizado por IA)
+-- Script de Simulación de Carga General 
+-- Autor: Brandon Canales Alvarado
 -- Fecha generado: 2025-06-21 13:16:02
 -- Descripción: Este script procesa la carga completa de catálogos y operaciones
 -- desde dos bloques XML, utilizando operaciones de conjunto en lugar de cursores
