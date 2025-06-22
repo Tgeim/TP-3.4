@@ -134,3 +134,7 @@ CREATE TABLE dbo.Feriado (
     nombre VARCHAR(100) NOT NULL,
     fecha DATE NOT NULL
 );
+CREATE TABLE dbo.TipoEvento (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL
+);
