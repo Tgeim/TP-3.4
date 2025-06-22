@@ -5,7 +5,7 @@ CREATE PROCEDURE dbo.SP_InsertarEmpleado
     @inIdTipoDocumento INT,
     @inIdDepartamento INT,
     @inIdPuesto INT,
-    @inIdUsuario INT, -- <- AÑADIDO
+    @inIdUsuario INT,
     @inIdPostByUser INT,
     @inPostInIP VARCHAR(50),
     @outResultCode INT OUTPUT
@@ -16,6 +16,7 @@ BEGIN
     BEGIN TRY
         BEGIN TRANSACTION;
 
+        -- Validación de documento único
         IF EXISTS (
             SELECT 1 FROM dbo.Empleado
             WHERE valorDocumento = @inValorDocumento AND activo = 1
@@ -26,6 +27,7 @@ BEGIN
             RETURN;
         END
 
+        -- Insertar nuevo empleado
         INSERT INTO dbo.Empleado (
             nombreCompleto,
             valorDocumento,
@@ -47,6 +49,24 @@ BEGIN
 
         DECLARE @nuevoIdEmpleado INT = SCOPE_IDENTITY();
 
+        -- Crear usuario automáticamente
+        DECLARE @username VARCHAR(50) = UPPER(@inNombreCompleto) + '1234';
+        DECLARE @password VARCHAR(100) = UPPER(@inNombreCompleto) + '1234';
+
+        INSERT INTO dbo.Usuario (
+            username,
+            passwordHash,
+            esAdministrador,
+            idEmpleado
+        )
+        VALUES (
+            @username,
+            @password,
+            0,
+            @nuevoIdEmpleado
+        );
+
+        -- Registrar en Bitácora
         INSERT INTO dbo.BitacoraEvento (
             idUsuario,
             idTipoEvento,
@@ -58,7 +78,7 @@ BEGIN
             jsonDespues
         )
         VALUES (
-            @inIdUsuario, -- <- Se usa aquí correctamente
+            @inIdUsuario,
             101,
             'Inserción de nuevo empleado',
             @inIdPostByUser,
@@ -77,6 +97,7 @@ BEGIN
 
         COMMIT;
         SET @outResultCode = 0;
+
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0 ROLLBACK;

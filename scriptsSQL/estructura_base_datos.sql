@@ -128,3 +128,8 @@ CREATE TABLE dbo.BitacoraEvento (
     jsonAntes NVARCHAR(MAX),
     jsonDespues NVARCHAR(MAX)
 );
+CREATE TABLE dbo.Feriado (
+    id INT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    fecha DATE NOT NULL
+);
