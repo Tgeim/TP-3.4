@@ -130,7 +130,7 @@ CREATE TABLE dbo.BitacoraEvento (
     jsonDespues NVARCHAR(MAX)
 );
 CREATE TABLE dbo.Feriado (
-    id INT PRIMARY KEY,
+    id INT IDENTITY(1,1) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     fecha DATE NOT NULL
 );

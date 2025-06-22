@@ -12355,10 +12355,13 @@ WHERE NOT EXISTS (
 );
 
 -- Feriados
-CREATE TABLE dbo.Feriado (
-    id INT IDENTITY(1,1) PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    fecha DATE NOT NULL
+INSERT INTO dbo.Feriado (nombre, fecha)
+SELECT
+    T.F.value('@Nombre', 'VARCHAR(100)'),
+    CONVERT(DATE, T.F.value('@Fecha', 'VARCHAR(8)'))
+FROM @xmlCatalogo.nodes('/Catalogo/Feriados/Feriado') AS T(F)
+WHERE NOT EXISTS (
+    SELECT 1 FROM dbo.Feriado F WHERE F.nombre = T.F.value('@Nombre', 'VARCHAR(100)')
 );
 
 -- Tipos de Movimiento
