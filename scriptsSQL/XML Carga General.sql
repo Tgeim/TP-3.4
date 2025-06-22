@@ -10,7 +10,6 @@ DECLARE @AdminUsername VARCHAR(50) = 'Sistema'; -- Usuario prioritario para proc
 -- Intentar obtener el ID del usuario del sistema
 SELECT @IdUsuarioParaBitacora = id FROM dbo.Usuario WHERE username = @AdminUsername;
 
--- Si no existe, como plan B, buscar al usuario 'Goku' (que se insertará desde el XML)
 IF @IdUsuarioParaBitacora IS NULL
 BEGIN
     PRINT 'INFO: Usuario "Sistema" no encontrado. Buscando usuario "Goku" como alternativa.';
