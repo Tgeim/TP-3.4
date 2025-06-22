@@ -12411,17 +12411,18 @@ OUTPUT
     inserted.valorDocumento, inserted.id 
 INTO @UsuarioMapping(valorDocumento, idEmpleado)
 SELECT
-    E.Empleado.value('@NombreCompleto', 'VARCHAR(100)'),
+    E.Empleado.value('@Nombre', 'VARCHAR(100)'),  
     E.Empleado.value('@ValorDocumento', 'VARCHAR(30)'),
     CONVERT(DATE, E.Empleado.value('@FechaNacimiento', 'VARCHAR(10)')),
     1, -- activo = 1
-    (SELECT id FROM dbo.TipoDocumento WHERE nombre = E.Empleado.value('@TipoDocumento', 'VARCHAR(50)')),
-    (SELECT id FROM dbo.Departamento WHERE nombre = E.Empleado.value('@Departamento', 'VARCHAR(100)')),
-    (SELECT id FROM dbo.Puesto WHERE nombre = E.Empleado.value('@Puesto', 'VARCHAR(100)'))
+    E.Empleado.value('@IdTipoDocumento', 'INT'),
+    E.Empleado.value('@IdDepartamento', 'INT'),
+    (SELECT id FROM dbo.Puesto WHERE nombre = E.Empleado.value('@NombrePuesto', 'VARCHAR(100)'))
 FROM @xmlCatalogo.nodes('/Catalogo/Empleados/Empleado') AS E(Empleado)
 WHERE NOT EXISTS (
     SELECT 1 FROM dbo.Empleado EM WHERE EM.valorDocumento = E.Empleado.value('@ValorDocumento', 'VARCHAR(30)')
 );
+
 
 -- Insertar usuarios
 INSERT INTO dbo.Usuario (username, passwordHash, esAdministrador, idEmpleado, tipo)
@@ -12492,12 +12493,13 @@ WHERE NOT EXISTS (
 );
 
 -- Insertar usuarios de empleados creados en esta semana
-INSERT INTO dbo.Usuario (username, passwordHash, esAdministrador, idEmpleado)
+INSERT INTO dbo.Usuario (username, passwordHash, esAdministrador, idEmpleado, tipo)
 SELECT
     E.Empleado.value('@Usuario', 'VARCHAR(50)'),
     E.Empleado.value('@Password', 'VARCHAR(100)'), -- contraseña literal
     0, -- esAdministrador
-    M.idEmpleado
+    M.idEmpleado,
+    E.Empleado.value('@Tipo', 'INT')
 FROM @bloqueSemana.nodes('FechaOperacion/NuevosEmpleados/NuevoEmpleado') AS E(Empleado)
 JOIN @UsuarioMapping M 
     ON M.valorDocumento = E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)')
@@ -12708,6 +12710,8 @@ END
 CLOSE cursorPlanilla;
 DEALLOCATE cursorPlanilla;
 -- ==================== BLOQUE: Desasociación de Deducciones ====================
+
+-- Bitácora antes de la desasociación
 INSERT INTO dbo.BitacoraEvento (
     idUsuario, idTipoEvento, descripcion,
     idPostByUser, postInIP, postTime,
@@ -12716,25 +12720,26 @@ INSERT INTO dbo.BitacoraEvento (
 SELECT 
     1, -- idUsuarioSistema
     2, -- idTipoEvento: modificación
-    CONCAT('Desasociación de deducción tipo ', Dedu.value('@IdTipoDeduccion', 'INT'), 
-           ' para empleado con documento ', Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)')),
+    CONCAT('Desasociación de deducción tipo ', D.Dedu.value('@IdTipoDeduccion', 'INT'), 
+           ' para empleado con documento ', D.Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)')),
     1, -- idPostByUser
     '127.0.0.1',
     GETDATE(),
     NULL,
     CONCAT(
-        '{"idTipoDeduccion":', Dedu.value('@IdTipoDeduccion', 'INT'),
-        ',"valorDocumento":"', Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)'), '"}'
+        '{"idTipoDeduccion":', D.Dedu.value('@IdTipoDeduccion', 'INT'),
+        ',"valorDocumento":"', D.Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)'), '"}'
     )
-FROM @xmlOperacion.nodes('//DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS T(Dedu);
+FROM @xmlOperacion.nodes('//DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS D(Dedu);
 
+-- Actualizar deducción existente con fecha de desasociación
 UPDATE DE
 SET fechaDesasociacion = @finSemanaOperacion
 FROM dbo.DeduccionEmpleado DE
-JOIN @UsuarioMapping M ON M.valorDocumento = Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)')
-JOIN @xmlOperacion.nodes('//DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS T(Dedu)
+JOIN @UsuarioMapping M ON M.valorDocumento = D.Dedu.value('@ValorTipoDocumento', 'VARCHAR(30)')
+JOIN @xmlOperacion.nodes('//DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS D(Dedu)
     ON DE.idEmpleado = M.idEmpleado
-WHERE DE.idTipoDeduccion = Dedu.value('@IdTipoDeduccion', 'INT')
+WHERE DE.idTipoDeduccion = D.Dedu.value('@IdTipoDeduccion', 'INT')
   AND DE.fechaDesasociacion IS NULL;
 
 -- ==================== BLOQUE: Asociación de Deducciones ====================
