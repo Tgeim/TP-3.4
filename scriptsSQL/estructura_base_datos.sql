@@ -113,6 +113,7 @@ CREATE TABLE dbo.Usuario (
     username VARCHAR(50) NOT NULL UNIQUE,
     passwordHash VARCHAR(100) NOT NULL,
     esAdministrador BIT NOT NULL,
+    tipo INT NOT NULL,
     idEmpleado INT NULL FOREIGN KEY REFERENCES dbo.Empleado(id)
 );
 
