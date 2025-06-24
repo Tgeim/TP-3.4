@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block titulo %}Mis Marcas{% endblock %}
+
+{% block contenido %}
+<div class="listar-movimientos-container">
+
+    <!-- Barra superior -->
+    <div class="navbar-movimientos">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Empleado</div>
+        </div>
+        <div class="titulo-menu">
+            <h1>Marcas por semana</h1>
+        </div>
+        <a href="/menu_empleado" class="btn-menu">Menú principal</a>
+    </div>
+
+    <!-- Filtro de semana -->
+    <form method="get" class="formulario-movimientos">
+        <div class="filtro-opciones">
+            <label>Fecha de la semana:</label>
+            <input type="date" name="fecha" value="{{ fecha_base }}">
+            <button type="submit" class="boton-filtrar">Buscar</button>
+        </div>
+    </form>
+
+    {% if marcas %}
+    <div class="tabla-contenedor">
+        <table class="tabla-estilizada">
+            <thead>
+                <tr>
+                    <th>ID Marca</th>
+                    <th>Tipo de Marca</th>
+                    <th>Fecha y Hora</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in marcas %}
+                <tr>
+                    <td>{{ m.id }}</td>
+                    <td>{{ m.tipoMarca }}</td>
+                    <td>{{ m.fechaHora.strftime('%Y-%m-%d %H:%M') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

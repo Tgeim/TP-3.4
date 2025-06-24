@@ -13,6 +13,7 @@ from backend.impersonar_empleado import ruta_impersonar_empleado
 from backend.admin import ruta_admin      
 from backend.planillas_empleado import ruta_planillas_empleado 
 from backend.listar_movimientos_empleado import ruta_movimientos_empleado
+from backend.listar_marcas_empleado import ruta_marcas_empleado
 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
@@ -32,6 +33,7 @@ app.register_blueprint(ruta_impersonar_empleado)
 app.register_blueprint(ruta_admin)  
 app.register_blueprint(ruta_planillas_empleado)
 app.register_blueprint(ruta_movimientos_empleado)
+app.register_blueprint(ruta_marcas_empleado)
 
 # Ruta raíz
 @app.route('/')
@@ -40,13 +42,11 @@ def inicio():
         return redirect(url_for('menu_admin' if session['usuario']['esAdmin'] else 'menu_empleado'))
     return redirect(url_for('ruta_login.login'))
 
-
-# Menú de empleado
 @app.route('/menu_empleado')
 def menu_empleado():
     if 'usuario' not in session:
         return redirect('/')
-    if not session['usuario']['esAdmin'] and 'impersonado' not in session:
+    if session['usuario']['esAdmin'] and 'impersonado' not in session:
         return redirect('/')
     return render_template('menu_empleado.html', usuario=session['usuario'])
 
