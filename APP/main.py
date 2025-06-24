@@ -9,7 +9,9 @@ from backend.editar_movimiento import ruta_editar_movimiento
 from backend.eliminar_movimiento import ruta_eliminar_movimiento
 from backend.listar_planillas_admin import ruta_planillas_admin
 from backend.bitacora_admin import ruta_bitacora_admin
-
+from backend.impersonar_empleado import ruta_impersonar_empleado  
+from backend.admin import ruta_admin      
+from backend.planillas_empleado import ruta_planillas_empleado 
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
@@ -24,6 +26,9 @@ app.register_blueprint(ruta_editar_movimiento)
 app.register_blueprint(ruta_eliminar_movimiento)
 app.register_blueprint(ruta_planillas_admin)
 app.register_blueprint(ruta_bitacora_admin)
+app.register_blueprint(ruta_impersonar_empleado)  
+app.register_blueprint(ruta_admin)  
+app.register_blueprint(ruta_planillas_empleado)
 
 # Ruta raíz
 @app.route('/')
@@ -32,19 +37,23 @@ def inicio():
         return redirect(url_for('menu_admin' if session['usuario']['esAdmin'] else 'menu_empleado'))
     return redirect(url_for('ruta_login.login'))
 
-# Menú de administrador
-@app.route('/menu_admin')
-def menu_admin():
-    if 'usuario' not in session or not session['usuario']['esAdmin']:
-        return redirect('/')
-    return render_template('menu_admin.html', usuario=session['usuario'])
 
 # Menú de empleado
 @app.route('/menu_empleado')
 def menu_empleado():
-    if 'usuario' not in session or session['usuario']['esAdmin']:
+    if 'usuario' not in session:
+        return redirect('/')
+    if not session['usuario']['esAdmin'] and 'impersonado' not in session:
         return redirect('/')
     return render_template('menu_empleado.html', usuario=session['usuario'])
+
+# Volver a vista de administrador desde modo impersonado
+@app.route('/volver_admin')
+def volver_admin():
+    if 'impersonado' in session and session['impersonado']:
+        session['usuario'] = session.pop('admin_original')
+        session.pop('impersonado', None)
+    return redirect(url_for('admin.menu_admin'))
 
 if __name__ == '__main__':
     app.run(debug=True)

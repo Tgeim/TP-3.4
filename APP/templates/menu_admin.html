@@ -5,26 +5,70 @@
     <title>Menú de Administración</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
-    <body>
-        <div class="menu-admin">
-            <div class="navbar">
-                <div class="usuario-info">
-                    <strong>{{ usuario.username }}</strong>
-                    <span class="rol">Administrador</span>
-                </div>
-                <div class="titulo-menu">
-                    <h1>Menú Principal</h1>
-                </div>
-                <a href="/logout" class="logout-btn">Cerrar sesión</a>
+<body>
+    <div class="menu-admin">
+        <div class="navbar">
+            <div class="usuario-info">
+                <strong>{{ usuario.username }}</strong>
+                <span class="rol">Administrador</span>
             </div>
+            <div class="titulo-menu">
+                <h1>Menú Principal</h1>
+            </div>
+            <a href="/logout" class="logout-btn">Cerrar sesión</a>
+        </div>
 
-            <div class="contenedor-botones">
-                <a href="/admin/empleados">Gestión de Empleados</a>
-                <a href="/admin/nuevo_empleado">Insertar Empleado</a>
-                <a href="/admin/movimientos">Movimientos</a>
-                <a href="/admin/planillas">Planillas</a>
-                <a href="/admin/bitacora">Bitácora</a>
+        <div class="contenedor-botones">
+            <a href="/admin/empleados">Gestión de Empleados</a>
+            <a href="/admin/nuevo_empleado">Insertar Empleado</a>
+            <a href="/admin/movimientos">Movimientos</a>
+            <a href="/admin/planillas">Planillas</a>
+            <a href="/admin/bitacora">Bitácora</a>
+
+            {% if empleados and not session.get('impersonado') %}
+            <div class="dropdown-impersonar">
+                <a href="javascript:void(0);" class="impersonar-btn" onclick="toggleLista()">Impersonar Empleado</a>
+                <div id="lista-empleados" class="lista-empleados">
+                    {% for emp in empleados %}
+                        <a href="/admin/impersonar/{{ emp.id }}" class="opcion-empleado">
+                            {{ emp.nombreCompleto }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+    function toggleLista() {
+        const lista = document.getElementById('lista-empleados');
+        lista.classList.toggle('visible');
+    }
+
+    // Cierra si haces clic fuera
+    document.addEventListener('click', function (e) {
+        const dropdown = document.querySelector('.dropdown-impersonar');
+        if (dropdown && !dropdown.contains(e.target)) {
+            document.getElementById('lista-empleados').classList.remove('visible');
+        }
+    });
+    </script>
+    {% if request.args.get('error') %}
+    <div class="modal-error-impersonar">
+        <div class="modal-overlay">
+            <div class="modal">
+                <p>No se pudo impersonar al empleado. Inténtalo de nuevo.</p>
+                <button class="confirmar" onclick="cerrarModal()">Aceptar</button>
             </div>
         </div>
-    </body>
+    </div>
+
+    <script>
+        function cerrarModal() {
+            window.location.href = "/menu_admin";
+        }
+    </script>
+    {% endif %}
+</body>
 </html>

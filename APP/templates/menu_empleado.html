@@ -6,14 +6,27 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
 </head>
 <body>
-    <h1>Bienvenido, {{ usuario.username }}</h1>
-    <h2>Menú del Empleado</h2>
-    <ul>
-        <li><a href="#">Ver planilla semanal</a></li>
-        <li><a href="#">Ver planilla mensual</a></li>
-        <li><a href="#">Ver movimientos</a></li>
-        <li><a href="#">Ver marcas</a></li>
-        <li><a href="/logout">Cerrar sesión</a></li>
-    </ul>
+    <div class="menu-empleado">
+        <div class="navbar">
+            <div class="usuario-info">
+                <strong>{{ usuario.username }}</strong>
+                <span class="rol">Empleado</span>
+            </div>
+            <div class="titulo-menu">
+                <h1>Menú Principal</h1>
+            </div>
+            {% if session.get('impersonado') %}
+                <a href="/volver_admin" class="logout-btn impersonado">Volver a Administración</a>
+            {% else %}
+                <a href="/logout" class="logout-btn">Cerrar sesión</a>
+            {% endif %}
+        </div>
+
+        <div class="contenedor-botones">
+            <a href="/usuario/planillas">Ver planillas</a>
+            <a href="#">Ver movimientos</a>
+            <a href="#">Ver marcas</a>
+        </div>
+    </div>
 </body>
 </html>

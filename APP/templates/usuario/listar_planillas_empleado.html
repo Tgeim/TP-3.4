@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Planillas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilos.css') }}">
+    <script>
+        function toggleCampos() {
+            const tipo = document.getElementById('tipo').value;
+            document.getElementById('input_fecha_mes').style.display = (tipo === 'mensual') ? 'block' : 'none';
+            document.getElementById('input_fecha_semana').style.display = (tipo === 'semanal') ? 'block' : 'none';
+        }
+        window.onload = toggleCampos;
+    </script>
+</head>
+<body class="listar-planillas-body">
+
+    <!-- Barra superior -->
+    <div class="barra-superior">
+        <div class="usuario-info">{{ usuario.username }}</div>
+        <div class="titulo-central">Mis Planillas</div>
+        <a href="/menu_empleado" class="btn-menu">Menú Principal</a>
+    </div>
+
+    <div class="planillas-container">
+        <form method="get" action="/usuario/planillas" class="formulario-planillas">
+            <div class="filtro-opciones">
+                <label for="tipo">Tipo de Planilla:</label>
+                <select name="tipo" id="tipo" onchange="toggleCampos()">
+                    <option value="mensual" {% if tipo == 'mensual' %}selected{% endif %}>Mensual</option>
+                    <option value="semanal" {% if tipo == 'semanal' %}selected{% endif %}>Semanal</option>
+                </select>
+
+                <div id="input_fecha_mes">
+                    <label for="fecha_mensual">Mes:</label>
+                    <input type="month" name="fecha_mensual" value="{{ fecha_mensual or '' }}">
+                </div>
+
+                <div id="input_fecha_semana">
+                    <label for="fecha_semanal">Fecha base:</label>
+                    <input type="date" name="fecha_semanal" value="{{ fecha_semanal or '' }}">
+                </div>
+
+                <button type="submit" class="boton-filtrar">Ver Planillas</button>
+            </div>
+        </form>
+
+        {% if planillas %}
+        <div class="tabla-contenedor">
+            <table class="tabla-estilizada">
+                <thead>
+                    <tr>
+                        {% if tipo == 'semanal' %}
+                            <th>Fecha de cálculo</th>
+                        {% endif %}
+                        <th>Horas Ordinarias</th>
+                        <th>Horas Extra</th>
+                        <th>Bruto</th>
+                        <th>Deducciones</th>
+                        <th>Neto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in planillas %}
+                        <tr>
+                            {% if tipo == 'semanal' %}
+                                <td>{{ p.fechaCalculo }}</td>
+                            {% endif %}
+                            <td>{{ p.horasOrdinarias }}</td>
+                            <td>{{ p.horasExtra }}</td>
+                            <td>{{ p.montoBruto }}</td>
+                            <td
+                                onclick="mostrarModalDeducciones({{ p.idEmpleado }}, '{{ tipo }}', '{{ fecha_mensual if tipo == 'mensual' else fecha_semanal }}')"
+                                style="cursor: pointer; transition: background-color 0.2s;"
+                                onmouseover="this.style.backgroundColor='#999'"
+                                onmouseout="this.style.backgroundColor='transparent'">
+                                {{ p.montoDeducciones }}
+                            </td>
+                            <td>{{ p.montoNeto }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif fecha_mensual or fecha_semanal %}
+            <p class="mensaje error">No se encontraron resultados.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function mostrarModalDeducciones(idEmpleado, tipo, fecha) {
+            if (!fecha) {
+                console.warn("Fecha no válida para deducciones");
+                return;
+            }
+            fetch(`/usuario/planillas/detalle_deducciones?idEmpleado=${idEmpleado}&tipo=${tipo}&fecha=${fecha}`)
+                .then(response => response.json())
+                .then(data => {
+                    const contenedor = document.getElementById('contenidoDeducciones');
+                    contenedor.innerHTML = '';
+
+                    const deducciones = data.deducciones;
+
+                    if (!Array.isArray(deducciones) || deducciones.length === 0) {
+                        contenedor.innerHTML = '<p>No se encontraron deducciones.</p>';
+                    } else {
+                        const lista = document.createElement('ul');
+                        deducciones.forEach(d => {
+                            const nombre = d.nombreDeduccion || 'Sin nombre';
+                            const monto = isNaN(parseFloat(d.montoCalculado)) ? '0.00' : parseFloat(d.montoCalculado).toFixed(2);
+                            const tipoDeduccion = d.porcentual ? 'Porcentual' : 'Fija';
+
+                            const item = document.createElement('li');
+                            item.textContent = `${nombre} - ₡${monto} (${tipoDeduccion})`;
+                            lista.appendChild(item);
+                        });
+                        contenedor.appendChild(lista);
+                    }
+
+                    document.getElementById('modalDeducciones').style.display = 'flex';
+                })
+                .catch(error => {
+                    console.error("Error al cargar deducciones:", error);
+                    const contenedor = document.getElementById('contenidoDeducciones');
+                    contenedor.innerHTML = '<p>Error al cargar deducciones.</p>';
+                    document.getElementById('modalDeducciones').style.display = 'flex';
+                });
+        }
+
+        function cerrarModalDeducciones() {
+            document.getElementById('modalDeducciones').style.display = 'none';
+        }
+
+        document.addEventListener("keydown", function(e) {
+            if (e.key === "Escape") cerrarModalDeducciones();
+        });
+    </script>
+
+    <!-- Modal -->
+    <div id="modalDeducciones" class="deduccion-modal-wrapper" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; backdrop-filter: blur(6px); background-color: rgba(0, 0, 0, 0.2); justify-content: center; align-items: center; z-index: 1000;">
+        <div class="modal-contenido" style="background: rgba(255, 255, 255, 0.95); padding: 30px 40px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); text-align: center; max-width: 400px; width: 90%;">
+            <h3 style="margin-bottom: 15px;">Detalle de Deducciones</h3>
+            <div id="contenidoDeducciones" style="margin-bottom: 20px;"></div>
+            <button onclick="cerrarModalDeducciones()" class="confirmar">Aceptar</button>
+        </div>
+    </div>
+</body>
+</html>
