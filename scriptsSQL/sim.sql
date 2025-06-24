@@ -12303,27 +12303,52 @@ BEGIN TRY
     -- =================================================================================
     PRINT '--- PASO 2: Cargando catálogos... ---';
     SET IDENTITY_INSERT dbo.TipoDocumento ON;
-    INSERT INTO dbo.TipoDocumento (id, nombre) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(50)') FROM @xmlCatalogo.nodes('/Catalogo/TiposdeDocumentodeIdentidad/TipoDocuIdentidad') AS T(Item);
+    INSERT INTO dbo.TipoDocumento (id, nombre) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(50)') 
+    FROM @xmlCatalogo.nodes('/Catalogo/TiposdeDocumentodeIdentidad/TipoDocuIdentidad') 
+    AS T(Item);
     SET IDENTITY_INSERT dbo.TipoDocumento OFF;
     SET IDENTITY_INSERT dbo.TipoJornada ON;
-    INSERT INTO dbo.TipoJornada (id, nombre, horaInicio, horaFin) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(50)'), T.Item.value('@HoraInicio', 'TIME'), T.Item.value('@HoraFin', 'TIME') FROM @xmlCatalogo.nodes('/Catalogo/TiposDeJornada/TipoDeJornada') AS T(Item);
+    INSERT INTO dbo.TipoJornada (id, nombre, horaInicio, horaFin) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(50)'), T.Item.value('@HoraInicio', 'TIME'), T.Item.value('@HoraFin', 'TIME') 
+    FROM @xmlCatalogo.nodes('/Catalogo/TiposDeJornada/TipoDeJornada') 
+    AS T(Item);
     SET IDENTITY_INSERT dbo.TipoJornada OFF;
-    INSERT INTO dbo.Puesto (nombre, salarioPorHora) SELECT T.Item.value('@Nombre', 'VARCHAR(100)'), T.Item.value('@SalarioXHora', 'FLOAT') FROM @xmlCatalogo.nodes('/Catalogo/Puestos/Puesto') AS T(Item);
+    INSERT INTO dbo.Puesto (nombre, salarioPorHora) 
+    SELECT T.Item.value('@Nombre', 'VARCHAR(100)'), T.Item.value('@SalarioXHora', 'FLOAT') 
+    FROM @xmlCatalogo.nodes('/Catalogo/Puestos/Puesto') 
+    AS T(Item);
     SET IDENTITY_INSERT dbo.Departamento ON;
-    INSERT INTO dbo.Departamento (id, nombre) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') FROM @xmlCatalogo.nodes('/Catalogo/Departamentos/Departamento') AS T(Item);
+    INSERT INTO dbo.Departamento (id, nombre) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') 
+    FROM @xmlCatalogo.nodes('/Catalogo/Departamentos/Departamento') 
+    AS T(Item);
     SET IDENTITY_INSERT dbo.Departamento OFF;
     SET IDENTITY_INSERT dbo.Feriado ON;
-    INSERT INTO dbo.Feriado (id, nombre, fecha) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)'), CONVERT(DATE, T.Item.value('@Fecha', 'VARCHAR(8)')) FROM @xmlCatalogo.nodes('/Catalogo/Feriados/Feriado') AS T(Item);
+    INSERT INTO dbo.Feriado (id, nombre, fecha) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)'), 
+    CONVERT(DATE, T.Item.value('@Fecha', 'VARCHAR(8)')) 
+    FROM @xmlCatalogo.nodes('/Catalogo/Feriados/Feriado') AS T(Item);
     SET IDENTITY_INSERT dbo.Feriado OFF;
     SET IDENTITY_INSERT dbo.TipoMovimiento ON;
-    INSERT INTO dbo.TipoMovimiento (id, nombre) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') FROM @xmlCatalogo.nodes('/Catalogo/TiposDeMovimiento/TipoDeMovimiento') AS T(Item);
+    INSERT INTO dbo.TipoMovimiento (id, nombre) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') 
+    FROM @xmlCatalogo.nodes('/Catalogo/TiposDeMovimiento/TipoDeMovimiento') 
+    AS T(Item);
     SET IDENTITY_INSERT dbo.TipoMovimiento OFF;
     SET IDENTITY_INSERT dbo.TipoDeduccion ON;
-    INSERT INTO dbo.TipoDeduccion (id, nombre, obligatorio, porcentual, valor) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)'), CASE WHEN T.Item.value('@Obligatorio', 'VARCHAR(2)') = 'Si' THEN 1 ELSE 0 END, CASE WHEN T.Item.value('@Porcentual', 'VARCHAR(2)') = 'Si' THEN 1 ELSE 0 END, T.Item.value('@Valor', 'FLOAT') FROM @xmlCatalogo.nodes('/Catalogo/TiposDeDeduccion/TipoDeDeduccion') AS T(Item);
+    INSERT INTO dbo.TipoDeduccion (id, nombre, obligatorio, porcentual, valor) 
+    SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)'), 
+    CASE WHEN T.Item.value('@Obligatorio', 'VARCHAR(2)') = 'Si' THEN 1 ELSE 0 END, 
+    CASE WHEN T.Item.value('@Porcentual', 'VARCHAR(2)') = 'Si' THEN 1 ELSE 0 END, T.Item.value('@Valor', 'FLOAT') 
+    FROM @xmlCatalogo.nodes('/Catalogo/TiposDeDeduccion/TipoDeDeduccion') AS T(Item);
     SET IDENTITY_INSERT dbo.TipoDeduccion OFF;
-    INSERT INTO dbo.Error (codigo, descripcion) SELECT T.Item.value('@Codigo', 'INT'), T.Item.value('@Descripcion', 'VARCHAR(255)') FROM @xmlCatalogo.nodes('/Catalogo/Errores/Error') AS T(Item);
+    INSERT INTO dbo.Error (codigo, descripcion) 
+    SELECT T.Item.value('@Codigo', 'INT'), T.Item.value('@Descripcion', 'VARCHAR(255)') 
+    FROM @xmlCatalogo.nodes('/Catalogo/Errores/Error') AS T(Item);
     SET IDENTITY_INSERT dbo.TipoEvento ON;
-    INSERT INTO dbo.TipoEvento (id, nombre) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') FROM @xmlCatalogo.nodes('/Catalogo/TiposdeEvento/TipoEvento') AS T(Item);
+    INSERT INTO dbo.TipoEvento (id, nombre) SELECT T.Item.value('@Id', 'INT'), T.Item.value('@Nombre', 'VARCHAR(100)') 
+    FROM @xmlCatalogo.nodes('/Catalogo/TiposdeEvento/TipoEvento') AS T(Item);
     SET IDENTITY_INSERT dbo.TipoEvento OFF;
     
     -- =================================================================================
@@ -12336,38 +12361,76 @@ BEGIN TRY
 
     INSERT INTO dbo.Empleado (nombreCompleto, valorDocumento, fechaNacimiento, activo, idTipoDocumento, idDepartamento, idPuesto) 
     OUTPUT inserted.valorDocumento, inserted.id INTO @UsuarioMapping(valorDocumento, idEmpleado)
-    SELECT T.Item.value('@Nombre', 'VARCHAR(100)'), T.Item.value('@ValorDocumento', 'VARCHAR(30)'), CONVERT(DATE, T.Item.value('@FechaNacimiento', 'VARCHAR(10)')), 1, T.Item.value('@IdTipoDocumento', 'INT'), T.Item.value('@IdDepartamento', 'INT'), (SELECT id FROM dbo.Puesto WHERE nombre = T.Item.value('@NombrePuesto', 'VARCHAR(100)'))
+    SELECT T.Item.value('@Nombre', 'VARCHAR(100)'), T.Item.value('@ValorDocumento', 'VARCHAR(30)'), 
+    CONVERT(DATE, T.Item.value('@FechaNacimiento', 'VARCHAR(10)')), 1, T.Item.value('@IdTipoDocumento', 'INT'), T.Item.value('@IdDepartamento', 'INT'), (SELECT id FROM dbo.Puesto WHERE nombre = T.Item.value('@NombrePuesto', 'VARCHAR(100)'))
     FROM @xmlCatalogo.nodes('/Catalogo/Empleados/Empleado') AS T(Item)
 	WHERE NOT EXISTS (SELECT 1 FROM dbo.Empleado E WHERE E.valorDocumento = T.Item.value('@ValorDocumento', 'VARCHAR(30)'));
 
     INSERT INTO dbo.Empleado (nombreCompleto, valorDocumento, fechaNacimiento, activo, idTipoDocumento, idDepartamento, idPuesto) 
     OUTPUT inserted.valorDocumento, inserted.id INTO @UsuarioMapping(valorDocumento, idEmpleado)
-    SELECT E.Empleado.value('@Nombre', 'VARCHAR(100)'), E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)'), CONVERT(DATE, E.Empleado.value('@FechaNacimiento', 'VARCHAR(10)')), 1, E.Empleado.value('@IdTipoDocumento', 'INT'), E.Empleado.value('@IdDepartamento', 'INT'), (SELECT id FROM dbo.Puesto WHERE nombre = E.Empleado.value('@NombrePuesto', 'VARCHAR(100)'))
+    SELECT E.Empleado.value('@Nombre', 'VARCHAR(100)'), E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)'), 
+    CONVERT(DATE, E.Empleado.value('@FechaNacimiento', 'VARCHAR(10)')), 1, E.Empleado.value('@IdTipoDocumento', 'INT'), E.Empleado.value('@IdDepartamento', 'INT'), (SELECT id FROM dbo.Puesto WHERE nombre = E.Empleado.value('@NombrePuesto', 'VARCHAR(100)'))
     FROM @xmlOperacion.nodes('//NuevoEmpleado') AS E(Empleado)
 	WHERE NOT EXISTS (SELECT 1 FROM dbo.Empleado EM WHERE EM.valorDocumento = E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)'));
 
     INSERT INTO dbo.Usuario (username, passwordHash, esAdministrador, idEmpleado, tipo)
-    SELECT u.value('@Username', 'VARCHAR(50)'), u.value('@Password', 'VARCHAR(50)'), 0, um.idEmpleado, u.value('@Tipo', 'INT') FROM @xmlCatalogo.nodes('//Usuario') AS T(u) JOIN @UsuarioMapping um ON um.valorDocumento = T.u.value('@Username', 'varchar(50)')
+    SELECT u.value('@Username', 'VARCHAR(50)'), u.value('@Password', 'VARCHAR(50)'), 0, um.idEmpleado, u.value('@Tipo', 'INT') 
+    FROM @xmlCatalogo.nodes('//Usuario') AS T(u) JOIN @UsuarioMapping um ON um.valorDocumento = T.u.value('@Username', 'varchar(50)')
     UNION ALL
-    SELECT u.value('@Usuario', 'VARCHAR(50)'), u.value('@Password', 'VARCHAR(50)'), 0, um.idEmpleado, 2 FROM @xmlOperacion.nodes('//NuevoEmpleado') AS T(u) JOIN @UsuarioMapping um ON um.valorDocumento = T.u.value('@ValorTipoDocumento', 'varchar(50)');
+    SELECT u.value('@Usuario', 'VARCHAR(50)'), u.value('@Password', 'VARCHAR(50)'), 0, um.idEmpleado, 2 
+    FROM @xmlOperacion.nodes('//NuevoEmpleado') AS T(u) JOIN @UsuarioMapping um ON um.valorDocumento = T.u.value('@ValorTipoDocumento', 'varchar(50)');
 
     ENABLE TRIGGER trg_InsertDeduccionesObligatorias ON dbo.Empleado;
 
-    -- =================================================================================
-    -- PASO 4: Procesar operaciones
-    -- =================================================================================
-    PRINT '--- PASO 4: Procesando operaciones... ---';
-    
-    INSERT INTO dbo.Marca (idEmpleado, fechaHora, tipoMarca) SELECT M.idEmpleado, A.A.value('@HoraEntrada', 'DATETIME'), 'entrada' FROM @xmlOperacion.nodes('//MarcaDeAsistencia') AS A(A) JOIN @UsuarioMapping M ON M.valorDocumento = A.A.value('@ValorTipoDocumento', 'VARCHAR(30)');
-    INSERT INTO dbo.Marca (idEmpleado, fechaHora, tipoMarca) SELECT M.idEmpleado, A.A.value('@HoraSalida', 'DATETIME'), 'salida' FROM @xmlOperacion.nodes('//MarcaDeAsistencia') AS A(A) JOIN @UsuarioMapping M ON M.valorDocumento = A.A.value('@ValorTipoDocumento', 'VARCHAR(30)');
-    INSERT INTO dbo.JornadaAsignada (idEmpleado, fechaInicioSemana, idTipoJornada, fechaCreacion) SELECT M.idEmpleado, DATEADD(wk, 1, DATEADD(wk, DATEDIFF(wk, 0, T.Jornada.value('../../@Fecha', 'date')), 0)), T.Jornada.value('@IdTipoJornada', 'INT'), GETDATE() FROM @xmlOperacion.nodes('//TipoJornadaProximaSemana') AS T(Jornada) JOIN @UsuarioMapping M ON M.valorDocumento = T.Jornada.value('@ValorTipoDocumento', 'VARCHAR(30)');
-    INSERT INTO dbo.DeduccionEmpleado(idEmpleado, idTipoDeduccion, fechaAsociacion) SELECT UM.idEmpleado, D.Deduccion.value('@IdTipoDeduccion', 'INT'), GETDATE() FROM @xmlOperacion.nodes('//AsociacionEmpleadoConDeduccion') AS D(Deduccion) JOIN @UsuarioMapping UM ON UM.valorDocumento = D.Deduccion.value('@ValorTipoDocumento', 'VARCHAR(30)');
-    UPDATE DE SET fechaDesasociacion = F.Fecha FROM dbo.DeduccionEmpleado DE JOIN @UsuarioMapping UM ON DE.idEmpleado = UM.idEmpleado CROSS APPLY (SELECT D.Desasociacion.value('../../@Fecha', 'DATE') as Fecha, D.Desasociacion.value('@ValorTipoDocumento', 'VARCHAR(30)') as ValorDoc, D.Desasociacion.value('@IdTipoDeduccion', 'INT') as IdDeduccion FROM @xmlOperacion.nodes('//DesasociacionEmpleadoConDeduccion') AS D(Desasociacion)) F WHERE DE.idTipoDeduccion = F.IdDeduccion AND UM.valorDocumento = F.ValorDoc AND DE.fechaDesasociacion IS NULL;
-    UPDATE dbo.Empleado SET activo = 0 WHERE id IN (SELECT UM.idEmpleado FROM @xmlOperacion.nodes('//EliminarEmpleado') AS E(Empleado) JOIN @UsuarioMapping UM ON UM.valorDocumento = E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)'));
+	-- =================================================================================
+	-- PASO 4: Procesar operaciones
+	-- =================================================================================
+	PRINT '--- PASO 4: Procesando operaciones... ---';
 
-    PRINT '✅ Fases de carga de datos completadas.';
+	-- Se declara y se asigna la fecha de operación para todo el lote
+	DECLARE @fechaDeOperacion DATE;
+	SELECT TOP 1 @fechaDeOperacion = T.Item.value('@HoraEntrada', 'DATE')
+	FROM @xmlOperacion.nodes('//MarcaDeAsistencia') AS T(Item)
+	ORDER BY T.Item.value('@HoraEntrada', 'DATETIME');
 
- -- =================================================================================
+	-- Se insertan las marcas de asistencia
+	INSERT INTO dbo.Marca (idEmpleado, fechaHora, tipoMarca) 
+	SELECT M.idEmpleado, A.A.value('@HoraEntrada', 'DATETIME'), 'entrada' 
+	FROM @xmlOperacion.nodes('//MarcaDeAsistencia') AS A(A) JOIN @UsuarioMapping M ON M.valorDocumento = A.A.value('@ValorTipoDocumento', 'VARCHAR(30)');
+
+	INSERT INTO dbo.Marca (idEmpleado, fechaHora, tipoMarca) 
+	SELECT M.idEmpleado, A.A.value('@HoraSalida', 'DATETIME'), 'salida' 
+	FROM @xmlOperacion.nodes('//MarcaDeAsistencia') AS A(A) JOIN @UsuarioMapping M ON M.valorDocumento = A.A.value('@ValorTipoDocumento', 'VARCHAR(30)');
+
+	-- Se insertan las jornadas asignadas
+	INSERT INTO dbo.JornadaAsignada (idEmpleado, fechaInicioSemana, idTipoJornada, fechaCreacion) 
+	SELECT M.idEmpleado, DATEADD(wk, 1, DATEADD(wk, DATEDIFF(wk, 0, T.Jornada.value('../../@Fecha', 'date')), 0)), T.Jornada.value('@IdTipoJornada', 'INT'), GETDATE() 
+	FROM @xmlOperacion.nodes('//TipoJornadaProximaSemana') AS T(Jornada) JOIN @UsuarioMapping M ON M.valorDocumento = T.Jornada.value('@ValorTipoDocumento', 'VARCHAR(30)');
+
+	-- ============================ INICIO DEL CAMBIO ============================
+	-- Se insertan las deducciones usando la variable @fechaDeOperacion para asegurar consistencia
+	INSERT INTO dbo.DeduccionEmpleado(idEmpleado, idTipoDeduccion, fechaAsociacion) 
+	SELECT 
+		UM.idEmpleado, 
+		D.Deduccion.value('@IdTipoDeduccion', 'INT'), 
+		@fechaDeOperacion -- <-- ESTE ES EL AJUSTE FINAL Y CORRECTO
+	FROM @xmlOperacion.nodes('//AsociacionEmpleadoConDeduccion') AS D(Deduccion) 
+	JOIN @UsuarioMapping UM ON UM.valorDocumento = D.Deduccion.value('@ValorTipoDocumento', 'VARCHAR(30)');
+	-- ============================ FIN DEL CAMBIO ============================
+
+	-- Se actualizan las desasociaciones
+	UPDATE DE SET fechaDesasociacion = F.Fecha FROM dbo.DeduccionEmpleado DE 
+	JOIN @UsuarioMapping UM ON DE.idEmpleado = UM.idEmpleado CROSS APPLY (SELECT D.Desasociacion.value('../../@Fecha', 'DATE') as Fecha, D.Desasociacion.value('@ValorTipoDocumento', 'VARCHAR(30)') as ValorDoc, D.Desasociacion.value('@IdTipoDeduccion', 'INT') as IdDeduccion 
+	FROM @xmlOperacion.nodes('//DesasociacionEmpleadoConDeduccion') AS D(Desasociacion)) F 
+	WHERE DE.idTipoDeduccion = F.IdDeduccion AND UM.valorDocumento = F.ValorDoc AND DE.fechaDesasociacion IS NULL;
+
+	-- Se actualizan los empleados a inactivos si es necesario
+	UPDATE dbo.Empleado SET activo = 0 WHERE id IN (SELECT UM.idEmpleado FROM @xmlOperacion.nodes('//EliminarEmpleado') AS E(Empleado) 
+	JOIN @UsuarioMapping UM ON UM.valorDocumento = E.Empleado.value('@ValorTipoDocumento', 'VARCHAR(30)'));
+
+	PRINT '✅ Fases de carga de datos completadas.';
+
+	-- =================================================================================
     -- PASO 5: CÁLCULO DE PLANILLA SEMANAL Y MOVIMIENTOS
     -- =================================================================================
     PRINT '--- PASO 5: CÁLCULO DE PLANILLAS SEMANALES Y MOVIMIENTOS... ---';
@@ -12391,28 +12454,45 @@ BEGIN TRY
         OPEN cursorEmpleados; FETCH NEXT FROM cursorEmpleados INTO @idEmpleado;
         WHILE @@FETCH_STATUS = 0
         BEGIN
-            DECLARE @totalHoras FLOAT = 0, @horasOrdinarias FLOAT = 0, @horasExtra FLOAT = 0, @salarioHora FLOAT, @inicioMarca DATETIME, @finMarca DATETIME, @tipoMarca VARCHAR(10);
-            IF CURSOR_STATUS('global', 'cursorMarcas') >= -1 BEGIN CLOSE cursorMarcas; DEALLOCATE cursorMarcas; END
-            DECLARE cursorMarcas CURSOR FOR SELECT fechaHora, tipoMarca FROM dbo.Marca WHERE idEmpleado = @idEmpleado AND CAST(fechaHora AS DATE) BETWEEN @inicioSemana AND @finSemana ORDER BY fechaHora;
+            DECLARE @totalHoras 
+            FLOAT = 0, @horasOrdinarias 
+            FLOAT = 0, @horasExtra 
+            FLOAT = 0, @salarioHora 
+            FLOAT, @inicioMarca 
+            DATETIME, @finMarca 
+            DATETIME, @tipoMarca VARCHAR(10);
+            IF CURSOR_STATUS('global', 'cursorMarcas') >= -1 BEGIN CLOSE cursorMarcas; 
+            DEALLOCATE cursorMarcas; END
+            DECLARE cursorMarcas CURSOR FOR SELECT fechaHora, tipoMarca 
+            FROM dbo.Marca WHERE idEmpleado = @idEmpleado AND CAST(fechaHora AS DATE) BETWEEN @inicioSemana AND @finSemana ORDER BY fechaHora;
             OPEN cursorMarcas; FETCH NEXT FROM cursorMarcas INTO @inicioMarca, @tipoMarca;
-            WHILE @@FETCH_STATUS = 0 BEGIN FETCH NEXT FROM cursorMarcas INTO @finMarca, @tipoMarca; IF @inicioMarca IS NOT NULL AND @finMarca IS NOT NULL BEGIN IF EXISTS (SELECT 1 FROM dbo.Feriado WHERE fecha = CAST(@inicioMarca AS DATE)) SET @horasExtra += DATEDIFF(MINUTE, @inicioMarca, @finMarca) / 60.0; ELSE SET @totalHoras += DATEDIFF(MINUTE, @inicioMarca, @finMarca) / 60.0; SET @inicioMarca = NULL; SET @finMarca = NULL; END FETCH NEXT FROM cursorMarcas INTO @inicioMarca, @tipoMarca; END
+            WHILE @@FETCH_STATUS = 0 BEGIN FETCH NEXT 
+            FROM cursorMarcas INTO @finMarca, @tipoMarca; IF @inicioMarca IS NOT NULL AND @finMarca IS NOT NULL BEGIN IF EXISTS (SELECT 1 FROM dbo.Feriado 
+            WHERE fecha = CAST(@inicioMarca AS DATE)) 
+            SET @horasExtra += DATEDIFF(MINUTE, @inicioMarca, @finMarca) / 60.0; ELSE SET @totalHoras += DATEDIFF(MINUTE, @inicioMarca, @finMarca) / 60.0; 
+            SET @inicioMarca = NULL; SET @finMarca = NULL; END FETCH NEXT FROM cursorMarcas INTO @inicioMarca, @tipoMarca; END
             CLOSE cursorMarcas; DEALLOCATE cursorMarcas;
-            DECLARE @idTipoJornada INT; SELECT TOP 1 @idTipoJornada = idTipoJornada FROM dbo.JornadaAsignada WHERE idEmpleado = @idEmpleado AND fechaInicioSemana <= @inicioSemana ORDER BY fechaInicioSemana DESC;
-            DECLARE @horaInicio TIME, @horaFin TIME; SELECT @horaInicio = horaInicio, @horaFin = horaFin FROM dbo.TipoJornada WHERE id = ISNULL(@idTipoJornada, 1);
+            DECLARE @idTipoJornada INT; SELECT TOP 1 @idTipoJornada = idTipoJornada 
+            FROM dbo.JornadaAsignada WHERE idEmpleado = @idEmpleado AND fechaInicioSemana <= @inicioSemana ORDER BY fechaInicioSemana DESC;
+            DECLARE @horaInicio TIME, @horaFin TIME; SELECT @horaInicio = horaInicio, @horaFin = horaFin 
+            FROM dbo.TipoJornada WHERE id = ISNULL(@idTipoJornada, 1);
             DECLARE @duracionJornadaEnHoras INT = DATEDIFF(HOUR, @horaInicio, @horaFin);
             IF (@duracionJornadaEnHoras < 0) BEGIN SET @duracionJornadaEnHoras = @duracionJornadaEnHoras + 24; END
             DECLARE @horasJornada FLOAT = @duracionJornadaEnHoras * 5.0;
-            IF @totalHoras > @horasJornada BEGIN SET @horasOrdinarias = @horasJornada; SET @horasExtra += (@totalHoras - @horasJornada); END ELSE SET @horasOrdinarias = @totalHoras;
+            IF @totalHoras > @horasJornada BEGIN SET @horasOrdinarias = @horasJornada; 
+            SET @horasExtra += (@totalHoras - @horasJornada); END ELSE SET @horasOrdinarias = @totalHoras;
             SELECT @salarioHora = salarioPorHora FROM dbo.Empleado E JOIN dbo.Puesto P ON E.idPuesto = P.id WHERE E.id = @idEmpleado;
             DECLARE @montoBruto FLOAT = (@horasOrdinarias * @salarioHora) + (@horasExtra * @salarioHora * 1.5);
-            IF @montoBruto > 0 INSERT INTO #HorasTrabajadas (idEmpleado, horasOrdinarias, horasExtra, montoBruto) VALUES (@idEmpleado, @horasOrdinarias, @horasExtra, @montoBruto);
+            IF @montoBruto > 0 INSERT INTO #HorasTrabajadas (idEmpleado, horasOrdinarias, horasExtra, montoBruto) 
+            VALUES (@idEmpleado, @horasOrdinarias, @horasExtra, @montoBruto);
             FETCH NEXT FROM cursorEmpleados INTO @idEmpleado;
        END
         CLOSE cursorEmpleados; DEALLOCATE cursorEmpleados;
 
         DECLARE @idUsuarioSistema INT = 1, @postInIP VARCHAR(50) = '127.0.0.1', @descripcion VARCHAR(255), @idPlanillaSemanal INT, @jsonDespues NVARCHAR(MAX);
         IF CURSOR_STATUS('global', 'cursorPlanilla') >= -1 BEGIN CLOSE cursorPlanilla; DEALLOCATE cursorPlanilla; END
-        DECLARE cursorPlanilla CURSOR FOR SELECT idEmpleado, horasOrdinarias, horasExtra, montoBruto FROM #HorasTrabajadas;
+        DECLARE cursorPlanilla CURSOR FOR SELECT idEmpleado, horasOrdinarias, horasExtra, montoBruto 
+        FROM #HorasTrabajadas;
         OPEN cursorPlanilla; FETCH NEXT FROM cursorPlanilla INTO @idEmpleado, @horasOrdinarias, @horasExtra, @montoBruto;
         WHILE @@FETCH_STATUS = 0
         BEGIN
@@ -12421,28 +12501,36 @@ BEGIN TRY
             DECLARE @montoOrdinario FLOAT = @horasOrdinarias * @salarioHora;
             DECLARE @montoExtra FLOAT = @horasExtra * @salarioHora * 1.5;
 
-            IF @montoOrdinario > 0 INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) VALUES(@idEmpleado, 1, @inicioSemana, @horasOrdinarias, @montoOrdinario, 1, GETDATE());
-            IF @montoExtra > 0 INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) VALUES(@idEmpleado, 2, @inicioSemana, @horasExtra, @montoExtra, 1, GETDATE());
+            IF @montoOrdinario > 0 INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) 
+            VALUES(@idEmpleado, 1, @inicioSemana, @horasOrdinarias, @montoOrdinario, 1, GETDATE());
+            IF @montoExtra > 0 INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) 
+            VALUES(@idEmpleado, 2, @inicioSemana, @horasExtra, @montoExtra, 1, GETDATE());
             
-            DECLARE @idTipoDeduccion INT, @montoDeduccionActual FLOAT, @esObligatoria BIT;
+            DECLARE @idTipoDeduccion 
+            INT, @montoDeduccionActual
+            FLOAT, @esObligatoria BIT;
             IF CURSOR_STATUS('global', 'cursorDeducciones') >= -1 BEGIN CLOSE cursorDeducciones; DEALLOCATE cursorDeducciones; END
-            DECLARE cursorDeducciones CURSOR FOR SELECT TD.id, CASE WHEN TD.porcentual = 1 THEN (@montoBruto * TD.valor) ELSE TD.valor END, TD.obligatorio FROM dbo.DeduccionEmpleado DE JOIN dbo.TipoDeduccion TD ON TD.id = DE.idTipoDeduccion WHERE DE.idEmpleado = @idEmpleado AND (DE.fechaDesasociacion IS NULL OR DE.fechaDesasociacion > @finSemana);
+            DECLARE cursorDeducciones CURSOR FOR SELECT TD.id, CASE WHEN TD.porcentual = 1 THEN (@montoBruto * TD.valor) ELSE TD.valor END, TD.obligatorio 
+            FROM dbo.DeduccionEmpleado DE JOIN dbo.TipoDeduccion TD ON TD.id = DE.idTipoDeduccion 
+            WHERE DE.idEmpleado = @idEmpleado AND (DE.fechaDesasociacion IS NULL OR DE.fechaDesasociacion > @finSemana);
             OPEN cursorDeducciones; FETCH NEXT FROM cursorDeducciones INTO @idTipoDeduccion, @montoDeduccionActual, @esObligatoria;
             WHILE @@FETCH_STATUS = 0
             BEGIN
                 SET @montoDeducciones = @montoDeducciones + @montoDeduccionActual;
-                -- ** CORRECCIÓN: Insertar 0 en lugar de NULL para cantidadHoras **
-                INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) VALUES(@idEmpleado, IIF(@esObligatoria = 1, 4, 5), @inicioSemana, 0, @montoDeduccionActual, 1, GETDATE());
+                INSERT INTO dbo.Movimiento(idEmpleado, idTipoMovimiento, semana, cantidadHoras, monto, creadoPorSistema, fechaCreacion) 
+                VALUES(@idEmpleado, IIF(@esObligatoria = 1, 4, 5), @inicioSemana, 0, @montoDeduccionActual, 1, GETDATE());
                 FETCH NEXT FROM cursorDeducciones INTO @idTipoDeduccion, @montoDeduccionActual, @esObligatoria;
             END
             CLOSE cursorDeducciones; DEALLOCATE cursorDeducciones;
 
             DECLARE @montoNeto FLOAT = @montoBruto - @montoDeducciones;
-            INSERT INTO dbo.PlanillaSemanal (idEmpleado, semanaInicio, semanaFin, horasOrdinarias, horasExtra, montoBruto, montoDeducciones, montoNeto, fechaCalculo) VALUES (@idEmpleado, @inicioSemana, @finSemana, @horasOrdinarias, @horasExtra, @montoBruto, @montoDeducciones, @montoNeto, GETDATE());
+            INSERT INTO dbo.PlanillaSemanal (idEmpleado, semanaInicio, semanaFin, horasOrdinarias, horasExtra, montoBruto, montoDeducciones, montoNeto, fechaCalculo) 
+            VALUES (@idEmpleado, @inicioSemana, @finSemana, @horasOrdinarias, @horasExtra, @montoBruto, @montoDeducciones, @montoNeto, GETDATE());
             SET @idPlanillaSemanal = SCOPE_IDENTITY();
             SET @descripcion = CONCAT('Inserción de planilla para empleado ID ', @idEmpleado, ' semana ', CONVERT(VARCHAR, @inicioSemana, 23));
             SET @jsonDespues = CONCAT('{"idPlanilla":', @idPlanillaSemanal, '}');
-            INSERT INTO dbo.BitacoraEvento (idUsuario, idTipoEvento, descripcion, idPostByUser, postInIP, postTime, jsonAntes, jsonDespues) VALUES (@idUsuarioSistema, 1, @descripcion, @idUsuarioSistema, @postInIP, GETDATE(), NULL, @jsonDespues);
+            INSERT INTO dbo.BitacoraEvento (idUsuario, idTipoEvento, descripcion, idPostByUser, postInIP, postTime, jsonAntes, jsonDespues) 
+            VALUES (@idUsuarioSistema, 1, @descripcion, @idUsuarioSistema, @postInIP, GETDATE(), NULL, @jsonDespues);
 
             FETCH NEXT FROM cursorPlanilla INTO @idEmpleado, @horasOrdinarias, @horasExtra, @montoBruto;
         END
