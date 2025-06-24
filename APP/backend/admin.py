@@ -27,7 +27,6 @@ def menu_admin():
         columnas = [col[0] for col in cursor.description] if cursor.description else []
         empleados_dict = [dict(zip(columnas, fila)) for fila in empleados]
 
-  # Verificación
 
     except Exception as e:
 
