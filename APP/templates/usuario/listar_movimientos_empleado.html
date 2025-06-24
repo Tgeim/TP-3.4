@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block titulo %}Mis Movimientos Semanales{% endblock %}
+
+{% block contenido %}
+<div class="movimientos-empleado">
+
+    <!-- Barra superior -->
+    <div class="navbar-movimientos">
+        <div class="usuario-info">
+            {{ usuario.username }}
+            <div class="rol">Empleado</div>
+        </div>
+        <div class="titulo-menu">
+            <h1>Mis movimientos semanales</h1>
+        </div>
+        <a href="/menu_empleado" class="btn-menu">Menú principal</a>
+    </div>
+
+    <!-- Selector de fecha -->
+    <form method="get" class="formulario-movimientos">
+        <div class="filtro-opciones">
+            <label>Selecciona una fecha de la semana:</label>
+            <input type="date" name="fecha" value="{{ fecha }}">
+            <button type="submit" class="boton-filtrar">Buscar</button>
+        </div>
+    </form>
+
+    {% if movimientos %}
+    <div class="tabla-contenedor">
+        <table class="tabla-estilizada">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Semana</th>
+                    <th>Tipo de Movimiento</th>
+                    <th>Horas</th>
+                    <th>Monto</th>
+                    <th>Creado por sistema</th>
+                    <th>Fecha de creación</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in movimientos %}
+                <tr>
+                    <td>{{ m.id }}</td>
+                    <td>{{ m.semana }}</td>
+                    <td>{{ m.tipoMovimiento }}</td>
+                    <td>{{ m.cantidadHoras }}</td>
+                    <td>{{ m.monto }}</td>
+                    <td>{{ 'Sí' if m.creadoPorSistema else 'No' }}</td>
+                    <td>{{ m.fechaCreacion.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+        <p style="text-align: center; margin-top: 2rem;">No se encontraron movimientos para la semana seleccionada.</p>
+    {% endif %}
+
+</div>
+{% endblock %}

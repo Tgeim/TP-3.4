@@ -12,6 +12,8 @@ from backend.bitacora_admin import ruta_bitacora_admin
 from backend.impersonar_empleado import ruta_impersonar_empleado  
 from backend.admin import ruta_admin      
 from backend.planillas_empleado import ruta_planillas_empleado 
+from backend.listar_movimientos_empleado import ruta_movimientos_empleado
+
 app = Flask(__name__)
 app.secret_key = 'clave_secreta_segura'
 
@@ -29,6 +31,7 @@ app.register_blueprint(ruta_bitacora_admin)
 app.register_blueprint(ruta_impersonar_empleado)  
 app.register_blueprint(ruta_admin)  
 app.register_blueprint(ruta_planillas_empleado)
+app.register_blueprint(ruta_movimientos_empleado)
 
 # Ruta raíz
 @app.route('/')
