@@ -3,19 +3,33 @@
 {% block titulo %}Lista de Empleados{% endblock %}
 
 {% block contenido %}
+<div class="contenido-principal" style="padding: 30px;">
 
-<div class="contenido-principal">
-  <div class="barra-superior">
-    <div class="usuario-info">
-      {{ usuario.username }}
+  <div class="barra-superior" style="margin-bottom: 30px;">
+    <div class="usuario-info">{{ usuario.username }}
       <div class="rol">Administrador</div>
     </div>
     <div class="titulo-central">Lista de Empleados</div>
     <a href="/menu_admin" class="btn-menu">Menú Principal</a>
   </div>
 
- <div class="filtros-contenedor" style="position: sticky; top: 100px; z-index: 10; padding: 15px; background-color: #f9f9f9; border-radius: 20px; margin-bottom: 20px; display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #ddd; width: 80%; margin-left: auto; margin-right: auto;">
-    
+  <!-- Filtros -->
+  <div class="filtros-contenedor" style="
+      position: sticky;
+      top: 100px;
+      z-index: 10;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      margin: 0 auto 30px auto;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      border: 1px solid #ccc;
+      width: 90%;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    ">
     <div class="filtro-item" style="flex: 1;">
       <label for="filtroPuesto" style="display: block; margin-bottom: 5px; font-weight: bold;">Filtrar por Puesto:</label>
       <select id="filtroPuesto" class="filtro-select" style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;"></select>
@@ -30,11 +44,21 @@
       <label for="filtroTexto" style="display: block; margin-bottom: 5px; font-weight: bold;">Buscar por Nombre o Documento:</label>
       <input type="text" id="filtroTexto" placeholder="Escribe aquí para buscar..." style="width: 100%; padding: 8px; border-radius: 4px; border: 1px solid #ccc;">
     </div>
-
   </div>
-  <div class="tabla-contenedor">
+
+  <!-- Tabla -->
+  <div class="tabla-contenedor" style="
+      background: rgba(255, 255, 255, 0.65);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 20px;
+      margin: 0 auto;
+      width: 90%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      overflow-x: auto;
+    ">
     {% if empleados %}
-    <table class="tabla-estilizada">
+    <table class="tabla-estilizada" style="width: 100%;">
       <thead>
         <tr>
           <th>ID</th>
@@ -68,6 +92,7 @@
   </div>
 </div>
 
+<!-- Modal -->
 <div id="modalConfirmacion" class="modal-overlay">
   <div class="modal">
     <p>¿Deseas eliminar este empleado?</p>
@@ -80,80 +105,79 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const filtroPuesto = document.getElementById('filtroPuesto');
-    const filtroDepto = document.getElementById('filtroDepto');
-    const filtroTexto = document.getElementById('filtroTexto');
-    const tablaBody = document.getElementById('tablaEmpleadosBody');
-    const filas = tablaBody.getElementsByTagName('tr');
-    const mensajeSinResultados = document.getElementById('sinResultados');
+  const filtroPuesto = document.getElementById('filtroPuesto');
+  const filtroDepto = document.getElementById('filtroDepto');
+  const filtroTexto = document.getElementById('filtroTexto');
+  const tablaBody = document.getElementById('tablaEmpleadosBody');
+  const filas = tablaBody.getElementsByTagName('tr');
+  const mensajeSinResultados = document.getElementById('sinResultados');
 
-    function cargarOpcionesFiltro() {
-        const puestos = new Set();
-        const departamentos = new Set();
-        for (let fila of filas) {
-            puestos.add(fila.cells[3].textContent.trim());
-            departamentos.add(fila.cells[4].textContent.trim());
-        }
-        filtroPuesto.innerHTML = '<option value="">Todos los Puestos</option>';
-        puestos.forEach(puesto => {
-            const option = document.createElement('option');
-            option.value = puesto;
-            option.textContent = puesto;
-            filtroPuesto.appendChild(option);
-        });
-        filtroDepto.innerHTML = '<option value="">Todos los Departamentos</option>';
-        departamentos.forEach(depto => {
-            const option = document.createElement('option');
-            option.value = depto;
-            option.textContent = depto;
-            filtroDepto.appendChild(option);
-        });
+  function cargarOpcionesFiltro() {
+    const puestos = new Set();
+    const departamentos = new Set();
+    for (let fila of filas) {
+      puestos.add(fila.cells[3].textContent.trim());
+      departamentos.add(fila.cells[4].textContent.trim());
     }
+    filtroPuesto.innerHTML = '<option value="">Todos los Puestos</option>';
+    puestos.forEach(puesto => {
+      const option = document.createElement('option');
+      option.value = puesto;
+      option.textContent = puesto;
+      filtroPuesto.appendChild(option);
+    });
+    filtroDepto.innerHTML = '<option value="">Todos los Departamentos</option>';
+    departamentos.forEach(depto => {
+      const option = document.createElement('option');
+      option.value = depto;
+      option.textContent = depto;
+      filtroDepto.appendChild(option);
+    });
+  }
 
-    function aplicarFiltros() {
-        const textoBusqueda = filtroTexto.value.toLowerCase();
-        const puestoSeleccionado = filtroPuesto.value;
-        const deptoSeleccionado = filtroDepto.value;
-        let filasVisibles = 0;
-        for (let fila of filas) {
-            const nombre = fila.cells[1].textContent.toLowerCase();
-            const documento = fila.cells[2].textContent.toLowerCase();
-            const puesto = fila.cells[3].textContent;
-            const departamento = fila.cells[4].textContent;
-            const coincideTexto = textoBusqueda === '' || nombre.includes(textoBusqueda) || documento.includes(textoBusqueda);
-            const coincidePuesto = puestoSeleccionado === '' || puesto === puestoSeleccionado;
-            const coincideDepto = deptoSeleccionado === '' || departamento === deptoSeleccionado;
-            if (coincideTexto && coincidePuesto && coincideDepto) {
-                fila.style.display = '';
-                filasVisibles++;
-            } else {
-                fila.style.display = 'none';
-            }
-        }
-        mensajeSinResultados.style.display = filasVisibles > 0 ? 'none' : 'block';
+  function aplicarFiltros() {
+    const textoBusqueda = filtroTexto.value.toLowerCase();
+    const puestoSeleccionado = filtroPuesto.value;
+    const deptoSeleccionado = filtroDepto.value;
+    let filasVisibles = 0;
+    for (let fila of filas) {
+      const nombre = fila.cells[1].textContent.toLowerCase();
+      const documento = fila.cells[2].textContent.toLowerCase();
+      const puesto = fila.cells[3].textContent;
+      const departamento = fila.cells[4].textContent;
+      const coincideTexto = textoBusqueda === '' || nombre.includes(textoBusqueda) || documento.includes(textoBusqueda);
+      const coincidePuesto = puestoSeleccionado === '' || puesto === puestoSeleccionado;
+      const coincideDepto = deptoSeleccionado === '' || departamento === deptoSeleccionado;
+      if (coincideTexto && coincidePuesto && coincideDepto) {
+        fila.style.display = '';
+        filasVisibles++;
+      } else {
+        fila.style.display = 'none';
+      }
     }
+    mensajeSinResultados.style.display = filasVisibles > 0 ? 'none' : 'block';
+  }
 
-    if (tablaBody) {
-        cargarOpcionesFiltro();
-        filtroPuesto.addEventListener('change', aplicarFiltros);
-        filtroDepto.addEventListener('change', aplicarFiltros);
-        filtroTexto.addEventListener('input', aplicarFiltros);
-    }
+  if (tablaBody) {
+    cargarOpcionesFiltro();
+    filtroPuesto.addEventListener('change', aplicarFiltros);
+    filtroDepto.addEventListener('change', aplicarFiltros);
+    filtroTexto.addEventListener('input', aplicarFiltros);
+  }
 });
 
 function confirmarEliminacion(id) {
-    const form = document.getElementById('formEliminar');
-    form.action = `/admin/eliminar_empleado/${id}`;
-    document.getElementById('modalConfirmacion').style.display = 'flex';
+  const form = document.getElementById('formEliminar');
+  form.action = `/admin/eliminar_empleado/${id}`;
+  document.getElementById('modalConfirmacion').style.display = 'flex';
 }
 
 function cerrarModal() {
-    document.getElementById('modalConfirmacion').style.display = 'none';
+  document.getElementById('modalConfirmacion').style.display = 'none';
 }
 
 document.addEventListener("keydown", function(e) {
-    if (e.key === "Escape") cerrarModal();
+  if (e.key === "Escape") cerrarModal();
 });
 </script>
-
 {% endblock %}

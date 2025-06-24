@@ -27,6 +27,7 @@ def menu_admin():
         columnas = [col[0] for col in cursor.description] if cursor.description else []
         empleados_dict = [dict(zip(columnas, fila)) for fila in empleados]
 
+  # Verificación
 
     except Exception as e:
 
@@ -35,4 +36,4 @@ def menu_admin():
     finally:
         conexion.close()
 
-    return render_template("menu_admin.html", usuario=session['usuario'], empleados=empleados_dict)
+    return render_template("menu_admin.html", usuario=session['usuario'], empleados=empleados_dict)    
