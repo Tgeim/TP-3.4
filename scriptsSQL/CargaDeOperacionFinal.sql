@@ -126,6 +126,24 @@ BEGIN TRY
     );
     --============================================
 
+
+    --============================================
+    -- 🔹 Variables para bloque de EliminarEmpleados
+    DECLARE
+        @xmlBloqueEliminaciones     XML,
+        @valorDocEliminar           VARCHAR(30),
+        @idEmpleadoEliminar         INT,
+        @resultadoEliminarSP        INT,
+        @iEliminar                  INT,
+        @totalEliminaciones         INT;
+
+    -- 🔹 Tabla variable para almacenar los empleados a eliminar desde el XML
+    DECLARE @eliminacionesXML TABLE (
+        valorDocumento     VARCHAR(30)
+    );
+    --============================================
+
+
     WHILE @indice <= @total
     BEGIN
         -- Obtener la fecha correspondiente a este índice
@@ -347,9 +365,6 @@ BEGIN TRY
                 END
             END
 
-
-
-
         END
 
         ------------------------------
@@ -555,7 +570,7 @@ BEGIN TRY
 
             IF @xmlBloqueDesasociaciones.exist('/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') = 1
             BEGIN
-                PRINT '➡ Desasociando deducciones...';
+                PRINT ' Desasociando deducciones...';
 
                 -- Llenar tabla con datos del XML
                 INSERT INTO @desasociacionesXML (
@@ -614,11 +629,6 @@ BEGIN TRY
                 END
             END
 
-
-
-
-
-
         END
 
         ------------------------------
@@ -627,7 +637,84 @@ BEGIN TRY
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/EliminarEmpleados/EliminarEmpleado') = 1
         BEGIN
             PRINT ' Eliminando empleados...';
-            -- Aquí iría el bloque para eliminar empleados
+
+
+            -- Limpieza previa
+            DELETE FROM @eliminacionesXML;
+            SET @xmlBloqueEliminaciones = NULL;
+
+            -- Extraer bloque de eliminación de empleados
+            SET @xmlBloqueEliminaciones = @xmlOperacion.query('
+                /Operacion
+                /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
+                /EliminarEmpleados
+            ');
+
+            IF @xmlBloqueEliminaciones.exist('/EliminarEmpleados/EliminarEmpleado') = 1
+            BEGIN
+                PRINT ' Eliminando empleados...';
+
+                -- Llenar tabla con documentos del XML
+                INSERT INTO @eliminacionesXML (
+                    valorDocumento
+                )
+                SELECT
+                    nodo.value('@ValorTipoDocumento', 'VARCHAR(30)')
+                FROM @xmlBloqueEliminaciones.nodes('/EliminarEmpleados/EliminarEmpleado') AS T(nodo);
+
+                SET @iEliminar = 1;
+                SET @totalEliminaciones = (SELECT COUNT(*) FROM @eliminacionesXML);
+
+                WHILE @iEliminar <= @totalEliminaciones
+                BEGIN
+                    -- Obtener documento de la fila actual
+                    SELECT @valorDocEliminar = valorDocumento
+                    FROM (
+                        SELECT 
+                            valorDocumento,
+                            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
+                        FROM @eliminacionesXML
+                    ) AS filaEliminar
+                    WHERE fila = @iEliminar;
+
+                    -- Buscar ID del empleado
+                    SELECT @idEmpleadoEliminar = id
+                    FROM dbo.Empleado
+                    WHERE valorDocumento = @valorDocEliminar
+                    AND activo = 1;
+
+                    IF @idEmpleadoEliminar IS NULL
+                    BEGIN
+                        PRINT '  Empleado con documento "' + @valorDocEliminar + '" no encontrado o ya inactivo. Eliminación omitida.';
+                    END
+                    ELSE
+                    BEGIN
+                        -- Ejecutar SP de eliminación lógica
+                        EXEC dbo.SP_EliminarEmpleadoSimulacion
+                            @inId             = @idEmpleadoEliminar,
+                            @inIdPostByUser   = 1,
+                            @inPostInIP       = 'SIMULACION',
+                            @outResultCode    = @resultadoEliminarSP OUTPUT;
+
+                        IF @resultadoEliminarSP = 0
+                        BEGIN
+                            PRINT ' Empleado eliminado lógicamente: ' + @valorDocEliminar;
+                        END
+                        ELSE
+                        BEGIN
+                            PRINT ' Error al eliminar empleado ' + @valorDocEliminar + 
+                                ' | Código: ' + CAST(@resultadoEliminarSP AS VARCHAR);
+                        END
+                    END
+
+                    -- Limpieza
+                    SET @idEmpleadoEliminar = NULL;
+                    SET @resultadoEliminarSP = NULL;
+
+                    SET @iEliminar += 1;
+                END
+            END
+
         END
 
         ------------------------------
