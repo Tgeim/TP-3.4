@@ -52,6 +52,26 @@ BEGIN TRY
     );
     --===========================================
 
+    --============================================
+    -- Variables para bloque JornadasProximaSemana
+    DECLARE
+        @xmlBloqueJornadas     XML,
+        @valorDocJornada       VARCHAR(30),
+        @idTipoJornadaAsignada INT,
+        @idEmpleadoAsignado    INT,
+        @fechaInicioJornada    DATE,
+        @iJornada               INT,
+        @totalJornadas         INT;
+
+    -- Tabla variable para almacenar nodos de jornada
+    DECLARE @jornadasXML TABLE (
+        valorDocumento     VARCHAR(30),
+        idTipoJornada      INT
+    );
+    --============================================
+
+
+
     WHILE @indice <= @total
     BEGIN
         -- Obtener la fecha correspondiente a este índice
@@ -69,7 +89,7 @@ BEGIN TRY
         -----------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/NuevosEmpleados/NuevoEmpleado') = 1
         BEGIN
-            PRINT ' Insertando nuevos empleados...';
+            
             -- Limpieza previa
             DELETE FROM @empleadosXML;
             SET @xmlBloqueNuevos = NULL;
@@ -144,7 +164,7 @@ BEGIN TRY
 
                     IF @idPuesto IS NULL
                     BEGIN
-                        PRINT '⚠️  Puesto "' + @nombrePuesto + '" no encontrado. Empleado omitido.';
+                        PRINT '  Puesto "' + @nombrePuesto + '" no encontrado. Empleado omitido.';
                     END
                     ELSE
                     BEGIN
@@ -165,12 +185,12 @@ BEGIN TRY
 
                         IF @resultadoSP <> 0
                         BEGIN
-                            PRINT '❌ Error al insertar "' + @nombreCompleto + 
+                            PRINT ' Error al insertar "' + @nombreCompleto + 
                                 '" | Código: ' + CAST(@resultadoSP AS VARCHAR);
                         END
                         ELSE
                         BEGIN
-                            PRINT '✅ Insertado: ' + @nombreCompleto;
+                            PRINT ' Insertado: ' + @nombreCompleto;
                         END
                     END
 
@@ -190,7 +210,92 @@ BEGIN TRY
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/JornadasProximaSemana/TipoJornadaProximaSemana') = 1
         BEGIN
             PRINT ' Asignando jornadas de próxima semana...';
-            -- Aquí iría el bloque para asignar jornadas
+
+            -- Limpieza previa
+            DELETE FROM @jornadasXML;
+                    SET @xmlBloqueJornadas = NULL;
+
+            -- Extraer el bloque de jornadas de la semana siguiente
+            SET @xmlBloqueJornadas = @xmlOperacion.query('
+                /Operacion
+                /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
+                /JornadasProximaSemana
+            ');
+
+            IF @xmlBloqueJornadas.exist('/JornadasProximaSemana/TipoJornadaProximaSemana') = 1
+            BEGIN
+                PRINT ' Asignando jornadas de próxima semana...';
+
+                -- Llenar la tabla variable con los nodos de jornada
+                INSERT INTO @jornadasXML (
+                    valorDocumento,
+                    idTipoJornada
+                )
+                SELECT
+                    nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
+                    nodo.value('@IdTipoJornada', 'INT')
+                FROM @xmlBloqueJornadas.nodes('/JornadasProximaSemana/TipoJornadaProximaSemana') AS T(nodo);
+
+                -- Calcular fecha de inicio de la semana (viernes siguiente al jueves actual)
+                SET @fechaInicioJornada = DATEADD(DAY, 1, @fechaActual);
+
+                SET @iJornada = 1;
+                SET @totalJornadas = (SELECT COUNT(*) FROM @jornadasXML);
+
+                WHILE @iJornada <= @totalJornadas
+                BEGIN
+                    -- Obtener datos de la fila i
+                    SELECT 
+                        @valorDocJornada       = valorDocumento,
+                        @idTipoJornadaAsignada = idTipoJornada
+                    FROM (
+                        SELECT 
+                            valorDocumento,
+                            idTipoJornada,
+                            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
+                        FROM @jornadasXML
+                    ) AS filaJ
+                    WHERE fila = @iJornada;
+
+                    -- Buscar el ID del empleado por documento
+                    SELECT @idEmpleadoAsignado = id
+                    FROM dbo.Empleado
+                    WHERE valorDocumento = @valorDocJornada
+                    AND activo = 1;
+
+                    IF @idEmpleadoAsignado IS NULL
+                    BEGIN
+                        PRINT '  Empleado con documento "' + @valorDocJornada + '" no encontrado. Jornada omitida.';
+                    END
+                    ELSE
+                    BEGIN
+                        -- Insertar la jornada directamente
+                        INSERT INTO dbo.JornadaAsignada (
+                            idEmpleado,
+                            fechaInicioSemana,
+                            idTipoJornada,
+                            fechaCreacion
+                        )
+                        VALUES (
+                            @idEmpleadoAsignado,
+                            @fechaInicioJornada,
+                            @idTipoJornadaAsignada,
+                            @fechaActual -- la fecha del jueves, no GETDATE()
+                        );
+
+                        PRINT ' Jornada asignada a empleado ' + @valorDocJornada;
+                    END
+
+                    -- Limpieza
+                    SET @idEmpleadoAsignado = NULL;
+
+                    SET @iJornada += 1;
+                END
+            END
+
+
+
+
         END
 
         ------------------------------
@@ -246,7 +351,7 @@ END TRY
 BEGIN CATCH
     ROLLBACK;
     DECLARE @Error NVARCHAR(MAX) = ERROR_MESSAGE();
-    PRINT '❌ Error: ' + @Error;
+    PRINT ' Error!!: ' + @Error;
 END CATCH
 
 SET NOCOUNT OFF;
