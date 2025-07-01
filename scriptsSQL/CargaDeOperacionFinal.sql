@@ -3,20 +3,20 @@ SET NOCOUNT ON;
 BEGIN TRY
     BEGIN TRANSACTION;
 
-    -- 1. Obtener el XML
+    -- 1. Obtener el XML de operación
     DECLARE @xmlOperacion XML;
     SELECT @xmlOperacion = CAST(contenidoXML AS XML)
     FROM dbo.XMLSimulacion
     WHERE nombreXML = 'Operacion';
 
-    -- 2. Tabla de fechas únicas
+    -- 2. Tabla de fechas únicas, para procesar por fecha, se crea una tabla variable
     DECLARE @FechasOperacion TABLE (Fecha DATE PRIMARY KEY);
 
-    INSERT INTO @FechasOperacion (Fecha)
+    INSERT INTO @FechasOperacion (Fecha) -- Extraer fechas del XML
     SELECT DISTINCT T.Nodos.value('@Fecha', 'DATE')
     FROM @xmlOperacion.nodes('/Operacion/FechaOperacion') AS T(Nodos);
 
-    -- 3. Variables de control
+    -- 3. Variables de control para iterar sobre las fechas
     DECLARE @fechaActual DATE;
     DECLARE @indice INT = 1;
     DECLARE @total INT = (SELECT COUNT(*) FROM @FechasOperacion);
@@ -24,7 +24,7 @@ BEGIN TRY
 
     --===========================================
     -- Variables para bloque de NuevosEmpleados
-    DECLARE
+    DECLARE 
         @xmlBloqueNuevos    XML,
         @nombreCompleto     VARCHAR(100),
         @valorDocumento     VARCHAR(30),
@@ -166,9 +166,10 @@ BEGIN TRY
         -- Bloque: NuevosEmpleados
         -----------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/NuevosEmpleados/NuevoEmpleado') = 1
+        -- se verifica si existe la etiqueta NuevosEmpleados para la fecha actual
         BEGIN
             
-            -- Limpieza previa
+            -- Limpieza previa de variables
             DELETE FROM @empleadosXML;
             SET @xmlBloqueNuevos = NULL;
 
@@ -177,13 +178,13 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /NuevosEmpleados
-            ');
+            '); -- se extrae el bloque de NuevosEmpleados para la fecha actual
 
-            IF @xmlBloqueNuevos.exist('/NuevosEmpleados/NuevoEmpleado') = 1
+            IF @xmlBloqueNuevos.exist('/NuevosEmpleados/NuevoEmpleado') = 1 -- se verifica si existen nuevos empleados en el bloque
             BEGIN
                 PRINT ' Insertando nuevos empleados...';
 
-                -- Poblar tabla con los empleados del XML
+                -- Llenar tabla con los empleados del XML
                 INSERT INTO @empleadosXML (
                     nombreCompleto,
                     idTipoDocumento,
@@ -203,12 +204,13 @@ BEGIN TRY
                     nodo.value('@NombrePuesto', 'VARCHAR(100)'),
                     nodo.value('@Usuario', 'VARCHAR(50)'),
                     nodo.value('@Password', 'VARCHAR(100)')
-                FROM @xmlBloqueNuevos.nodes('/NuevosEmpleados/NuevoEmpleado') AS T(nodo);
+                FROM @xmlBloqueNuevos.nodes('/NuevosEmpleados/NuevoEmpleado') AS T(nodo); 
+                -- se llena la tabla variable con los nodos de NuevoEmpleado: Nombre, IdTipoDocumento, ValorTipoDocumento, FechaNacimiento, IdDepartamento, NombrePuesto, Usuario y Password
 
-                SET @iNuevos = 1;
-                SET @totalNuevos = (SELECT COUNT(*) FROM @empleadosXML);
+                SET @iNuevos = 1; -- Inicializar contador de nuevos empleados
+                SET @totalNuevos = (SELECT COUNT(*) FROM @empleadosXML); -- se obtiene el total de nuevos empleados
 
-                WHILE @iNuevos <= @totalNuevos
+                WHILE @iNuevos <= @totalNuevos -- Iterar sobre cada nuevo empleado
                 BEGIN
                     -- Extraer fila i
                     SELECT 
@@ -283,13 +285,14 @@ BEGIN TRY
         END
 
         -----------------------------------
-        -- ETIQUETA: JornadasProximaSemana
+        -- BLOQUE: JornadasProximaSemana
         -----------------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/JornadasProximaSemana/TipoJornadaProximaSemana') = 1
+        -- se verifica si existe la etiqueta JornadasProximaSemana para la fecha actual
         BEGIN
-            PRINT ' Asignando jornadas de próxima semana...';
+            
 
-            -- Limpieza previa
+            -- Limpieza previa de variables
             DELETE FROM @jornadasXML;
                     SET @xmlBloqueJornadas = NULL;
 
@@ -298,9 +301,10 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /JornadasProximaSemana
-            ');
+            '); -- se extrae el bloque de JornadasProximaSemana para la fecha actual
 
             IF @xmlBloqueJornadas.exist('/JornadasProximaSemana/TipoJornadaProximaSemana') = 1
+            -- se verifica si existen jornadas de la próxima semana en el bloque
             BEGIN
                 PRINT ' Asignando jornadas de próxima semana...';
 
@@ -313,14 +317,15 @@ BEGIN TRY
                     nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
                     nodo.value('@IdTipoJornada', 'INT')
                 FROM @xmlBloqueJornadas.nodes('/JornadasProximaSemana/TipoJornadaProximaSemana') AS T(nodo);
+                -- se llena la tabla variable con los nodos de TipoJornadaProximaSemana: ValorTipoDocumento, IdTipoJornada
 
                 -- Calcular fecha de inicio de la semana (viernes siguiente al jueves actual)
                 SET @fechaInicioJornada = DATEADD(DAY, 1, @fechaActual);
 
-                SET @iJornada = 1;
-                SET @totalJornadas = (SELECT COUNT(*) FROM @jornadasXML);
+                SET @iJornada = 1; -- Inicializar contador de jornadas
+                SET @totalJornadas = (SELECT COUNT(*) FROM @jornadasXML);-- se obtiene el total de jornadas de la próxima semana
 
-                WHILE @iJornada <= @totalJornadas
+                WHILE @iJornada <= @totalJornadas -- Iterar sobre cada jornada
                 BEGIN
                     -- Obtener datos de la fila i
                     SELECT 
@@ -333,7 +338,7 @@ BEGIN TRY
                             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
                         FROM @jornadasXML
                     ) AS filaJ
-                    WHERE fila = @iJornada;
+                    WHERE fila = @iJornada; -- Se obtiene la fila correspondiente a la jornada actual
 
                     -- Buscar el ID del empleado por documento
                     SELECT @idEmpleadoAsignado = id
@@ -374,12 +379,13 @@ BEGIN TRY
         END
 
         ------------------------------
-        -- ETIQUETA: MarcasAsistencia
+        -- BLOQUE: MarcasAsistencia
         ------------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/MarcasAsistencia/MarcaDeAsistencia') = 1
+        -- se verifica si existe la etiqueta MarcasAsistencia para la fecha actual
         BEGIN
-            PRINT ' Insertando marcas de asistencia...';
-            -- Limpieza previa
+           
+            -- Limpieza previa de variables
             DELETE FROM @marcasXML;
             SET @xmlBloqueMarcas = NULL;
 
@@ -388,7 +394,8 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /MarcasAsistencia
-            ');
+            '); -- se extrae el bloque de MarcasAsistencia para la fecha actual
+            
 
             IF @xmlBloqueMarcas.exist('/MarcasAsistencia/MarcaDeAsistencia') = 1
             BEGIN
@@ -405,11 +412,12 @@ BEGIN TRY
                     nodo.value('@HoraEntrada', 'DATETIME'),
                     nodo.value('@HoraSalida', 'DATETIME')
                 FROM @xmlBloqueMarcas.nodes('/MarcasAsistencia/MarcaDeAsistencia') AS T(nodo);
+                -- se llena la tabla variable con los nodos de MarcaDeAsistencia: ValorTipoDocumento, HoraEntrada, HoraSalida
 
-                SET @iMarca = 1;
-                SET @totalMarcas = (SELECT COUNT(*) FROM @marcasXML);
+                SET @iMarca = 1; -- Inicializar contador de marcas
+                SET @totalMarcas = (SELECT COUNT(*) FROM @marcasXML); -- se obtiene el total de marcas de asistencia
 
-                WHILE @iMarca <= @totalMarcas
+                WHILE @iMarca <= @totalMarcas -- Iterar sobre cada marca
                 BEGIN
                     -- Obtener los datos de la marca i
                     SELECT 
@@ -424,7 +432,7 @@ BEGIN TRY
                             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
                         FROM @marcasXML
                     ) AS marcasConFila
-                    WHERE fila = @iMarca;
+                    WHERE fila = @iMarca; -- Se obtiene la fila correspondiente a la marca actual
 
                     -- Obtener ID del empleado
                     SELECT @idEmpleadoMarca = id
@@ -466,11 +474,11 @@ BEGIN TRY
         -- ETIQUETA: AsociacionDeducciones
         --------------------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') = 1
+        -- se verifica si existe la etiqueta AsociacionEmpleadoDeducciones para la fecha actual
         BEGIN
-            PRINT ' Asociando deducciones...';
 
 
-            -- Limpieza previa
+            -- Limpieza previa de variables
             DELETE FROM @asociacionesXML;
             SET @xmlBloqueAsociaciones = NULL;
 
@@ -479,9 +487,10 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /AsociacionEmpleadoDeducciones
-            ');
+            '); -- se extrae el bloque de AsociacionEmpleadoDeducciones para la fecha actual
 
             IF @xmlBloqueAsociaciones.exist('/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') = 1
+            -- se verifica si existen asociaciones de deducciones en el bloque
             BEGIN
                 PRINT ' Asociando deducciones...';
 
@@ -496,11 +505,12 @@ BEGIN TRY
                     nodo.value('@IdTipoDeduccion', 'INT'),
                     ISNULL(nodo.value('@Monto', 'INT'), 0)
                 FROM @xmlBloqueAsociaciones.nodes('/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') AS T(nodo);
+                -- se llena la tabla variable con los nodos de AsociacionEmpleadoConDeduccion: ValorTipoDocumento, IdTipoDeduccion, Monto
 
                 SET @iAsociacion = 1;
                 SET @totalAsociaciones = (SELECT COUNT(*) FROM @asociacionesXML);
 
-                WHILE @iAsociacion <= @totalAsociaciones
+                WHILE @iAsociacion <= @totalAsociaciones -- Iterar sobre cada asociación
                 BEGIN
                     -- Extraer datos de la fila i
                     SELECT 
@@ -515,7 +525,7 @@ BEGIN TRY
                             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
                         FROM @asociacionesXML
                     ) AS asociacionesConFila
-                    WHERE fila = @iAsociacion;
+                    WHERE fila = @iAsociacion; -- Se obtiene la fila correspondiente a la asociación actual
 
                     -- Buscar ID del empleado
                     SELECT @idEmpleadoAsociado = id
@@ -556,14 +566,15 @@ BEGIN TRY
         END
 
         ------------------------------------------
-        -- ETIQUETA: DesasociacionDeducciones
+        -- BLOQUE: DesasociacionDeducciones
         ------------------------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') = 1
+        -- se verifica si existe la etiqueta DesasociacionEmpleadoDeducciones para la fecha actual
         BEGIN
-            PRINT ' Desasociando deducciones...';
+            
 
 
-            -- Limpieza previa
+            -- Limpieza previa de variables
             DELETE FROM @desasociacionesXML;
             SET @xmlBloqueDesasociaciones = NULL;
 
@@ -572,9 +583,10 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /DesasociacionEmpleadoDeducciones
-            ');
+            '); -- se extrae el bloque de DesasociacionEmpleadoDeducciones para la fecha actual
 
             IF @xmlBloqueDesasociaciones.exist('/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') = 1
+            -- se verifica si existen desasociaciones de deducciones en el bloque
             BEGIN
                 PRINT ' Desasociando deducciones...';
 
@@ -587,11 +599,12 @@ BEGIN TRY
                     nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
                     nodo.value('@IdTipoDeduccion', 'INT')
                 FROM @xmlBloqueDesasociaciones.nodes('/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS T(nodo);
+                -- se llena la tabla variable con los nodos de DesasociacionEmpleadoConDeduccion: ValorTipoDocumento, IdTipoDeduccion
 
-                SET @iDesasociacion = 1;
-                SET @totalDesasociaciones = (SELECT COUNT(*) FROM @desasociacionesXML);
+                SET @iDesasociacion = 1; -- Inicializar contador de desasociaciones
+                SET @totalDesasociaciones = (SELECT COUNT(*) FROM @desasociacionesXML); -- se obtiene el total de desasociaciones
 
-                WHILE @iDesasociacion <= @totalDesasociaciones
+                WHILE @iDesasociacion <= @totalDesasociaciones -- Iterar sobre cada desasociación
                 BEGIN
                     -- Extraer fila actual
                     SELECT 
@@ -610,7 +623,7 @@ BEGIN TRY
                     SELECT @idEmpleadoDesasociado = id
                     FROM dbo.Empleado
                     WHERE valorDocumento = @valorDocDesasociacion
-                    AND activo = 1;
+                    AND activo = 1; -- se busca el ID del empleado activo por su documento
 
                     IF @idEmpleadoDesasociado IS NULL
                     BEGIN
@@ -638,14 +651,15 @@ BEGIN TRY
         END
 
         ------------------------------
-        -- ETIQUETA: EliminarEmpleados
+        -- BLOQUE: EliminarEmpleados
         ------------------------------
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/EliminarEmpleados/EliminarEmpleado') = 1
+        -- se verifica si existe la etiqueta EliminarEmpleados para la fecha actual
         BEGIN
-            PRINT ' Eliminando empleados...';
+            
 
 
-            -- Limpieza previa
+            -- Limpieza previa de variables
             DELETE FROM @eliminacionesXML;
             SET @xmlBloqueEliminaciones = NULL;
 
@@ -654,9 +668,10 @@ BEGIN TRY
                 /Operacion
                 /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
                 /EliminarEmpleados
-            ');
+            '); -- se extrae el bloque de EliminarEmpleados para la fecha actual
 
             IF @xmlBloqueEliminaciones.exist('/EliminarEmpleados/EliminarEmpleado') = 1
+            -- se verifica si existen empleados a eliminar en el bloque
             BEGIN
                 PRINT ' Eliminando empleados...';
 
@@ -667,11 +682,12 @@ BEGIN TRY
                 SELECT
                     nodo.value('@ValorTipoDocumento', 'VARCHAR(30)')
                 FROM @xmlBloqueEliminaciones.nodes('/EliminarEmpleados/EliminarEmpleado') AS T(nodo);
+                -- se llena la tabla variable con los nodos de EliminarEmpleado: ValorTipoDocumento
 
-                SET @iEliminar = 1;
-                SET @totalEliminaciones = (SELECT COUNT(*) FROM @eliminacionesXML);
+                SET @iEliminar = 1; -- Inicializar contador de eliminaciones
+                SET @totalEliminaciones = (SELECT COUNT(*) FROM @eliminacionesXML); -- se obtiene el total de eliminaciones
 
-                WHILE @iEliminar <= @totalEliminaciones
+                WHILE @iEliminar <= @totalEliminaciones -- Iterar sobre cada eliminación
                 BEGIN
                     -- Obtener documento de la fila actual
                     SELECT @valorDocEliminar = valorDocumento
@@ -681,7 +697,7 @@ BEGIN TRY
                             ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
                         FROM @eliminacionesXML
                     ) AS filaEliminar
-                    WHERE fila = @iEliminar;
+                    WHERE fila = @iEliminar; -- Se obtiene la fila correspondiente a la eliminación actual
 
                     -- Buscar ID del empleado
                     SELECT @idEmpleadoEliminar = id
@@ -696,7 +712,7 @@ BEGIN TRY
                     ELSE
                     BEGIN
                         -- Ejecutar SP de eliminación lógica
-                        EXEC dbo.SP_EliminarEmpleadoSimulacion
+                        EXEC dbo.SP_EliminarEmpleadoSimulacion -- Procedimiento para eliminar lógicamente el empleado
                             @inId             = @idEmpleadoEliminar,
                             @inIdPostByUser   = 1,
                             @inPostInIP       = 'SIMULACION',
@@ -726,11 +742,11 @@ BEGIN TRY
         ------------------------------
         -- CÁLCULO DE PLANILLA (Jueves)
         ------------------------------
-        IF DATENAME(WEEKDAY, @fechaActual) = 'Thursday'
+        IF DATENAME(WEEKDAY, @fechaActual) = 'Thursday' -- Verificar si es jueves
         BEGIN
             PRINT 'Ejecutando cálculo de planilla...';
 
-            EXEC dbo.SP_CalcularPlanillaSemanalEmpleado
+            EXEC dbo.SP_CalcularPlanillaSemanalEmpleado -- Llamar al SP de cálculo de planilla semanal
                 @inFechaCorte     = @fechaActual,
                 @inIdUsuario      = @idPostByUserPlanilla,
                 @inIdPostByUser   = @idPostByUserPlanilla,
@@ -740,7 +756,7 @@ BEGIN TRY
             IF @outResultCodePlanilla <> 0
             BEGIN
                 RAISERROR('Error en cálculo de planilla semanal. Código: %d', 16, 1, @outResultCodePlanilla);
-                -- Puedes elegir ROLLBACK o LOG si deseas continuar
+                
             END
 
 
