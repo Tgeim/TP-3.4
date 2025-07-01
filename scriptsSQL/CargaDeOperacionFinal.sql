@@ -70,6 +70,25 @@ BEGIN TRY
     );
     --============================================
 
+    --===========================================
+    -- Variables para bloque MarcasAsistencia
+    DECLARE
+        @xmlBloqueMarcas       XML,
+        @valorDocMarca         VARCHAR(30),
+        @horaEntradaMarca      DATETIME,
+        @horaSalidaMarca       DATETIME,
+        @idEmpleadoMarca       INT,
+        @iMarca                INT,
+        @totalMarcas           INT;
+
+    -- Tabla variable para almacenar marcas extraídas del XML
+    DECLARE @marcasXML TABLE (
+        valorDocumento     VARCHAR(30),
+        horaEntrada        DATETIME,
+        horaSalida         DATETIME
+    );
+    --===========================================
+
 
 
     WHILE @indice <= @total
@@ -304,7 +323,87 @@ BEGIN TRY
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/MarcasAsistencia/MarcaDeAsistencia') = 1
         BEGIN
             PRINT ' Insertando marcas de asistencia...';
-            -- Aquí iría el bloque para insertar marcas
+            -- Limpieza previa
+            DELETE FROM @marcasXML;
+            SET @xmlBloqueMarcas = NULL;
+
+            -- Extraer bloque de marcas
+            SET @xmlBloqueMarcas = @xmlOperacion.query('
+                /Operacion
+                /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
+                /MarcasAsistencia
+            ');
+
+            IF @xmlBloqueMarcas.exist('/MarcasAsistencia/MarcaDeAsistencia') = 1
+            BEGIN
+                PRINT ' Insertando marcas de asistencia...';
+
+                -- Llenar tabla variable con los datos del XML
+                INSERT INTO @marcasXML (
+                    valorDocumento,
+                    horaEntrada,
+                    horaSalida
+                )
+                SELECT
+                    nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
+                    nodo.value('@HoraEntrada', 'DATETIME'),
+                    nodo.value('@HoraSalida', 'DATETIME')
+                FROM @xmlBloqueMarcas.nodes('/MarcasAsistencia/MarcaDeAsistencia') AS T(nodo);
+
+                SET @iMarca = 1;
+                SET @totalMarcas = (SELECT COUNT(*) FROM @marcasXML);
+
+                WHILE @iMarca <= @totalMarcas
+                BEGIN
+                    -- Obtener los datos de la marca i
+                    SELECT 
+                        @valorDocMarca    = valorDocumento,
+                        @horaEntradaMarca = horaEntrada,
+                        @horaSalidaMarca  = horaSalida
+                    FROM (
+                        SELECT 
+                            valorDocumento,
+                            horaEntrada,
+                            horaSalida,
+                            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
+                        FROM @marcasXML
+                    ) AS marcasConFila
+                    WHERE fila = @iMarca;
+
+                    -- Obtener ID del empleado
+                    SELECT @idEmpleadoMarca = id
+                    FROM dbo.Empleado
+                    WHERE valorDocumento = @valorDocMarca
+                    AND activo = 1;
+
+                    IF @idEmpleadoMarca IS NULL
+                    BEGIN
+                        PRINT '  Empleado con documento "' + @valorDocMarca + '" no encontrado. Marca omitida.';
+                    END
+                    ELSE
+                    BEGIN
+                        -- Insertar marca
+                        INSERT INTO dbo.Marca (
+                            idEmpleado,
+                            fechaHoraEntrada,
+                            fechaHoraSalida
+                        )
+                        VALUES (
+                            @idEmpleadoMarca,
+                            @horaEntradaMarca,
+                            @horaSalidaMarca
+                        );
+
+                        PRINT ' Marca insertada para empleado ' + @valorDocMarca;
+                    END
+
+                    -- Limpieza para siguiente iteración
+                    SET @idEmpleadoMarca = NULL;
+
+                    SET @iMarca += 1;
+                END
+            END
+
         END
 
         --------------------------------------
