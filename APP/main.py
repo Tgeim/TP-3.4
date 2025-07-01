@@ -39,7 +39,7 @@ app.register_blueprint(ruta_marcas_empleado)
 @app.route('/')
 def inicio():
     if 'usuario' in session:
-        return redirect(url_for('menu_admin' if session['usuario']['esAdmin'] else 'menu_empleado'))
+        return redirect(url_for('admin.menu_admin' if session['usuario']['esAdmin'] else 'menu_empleado'))
     return redirect(url_for('ruta_login.login'))
 
 @app.route('/menu_empleado')

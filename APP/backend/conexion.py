@@ -3,12 +3,10 @@ import pyodbc
 def obtener_conexion():
     try:
         conexion = pyodbc.connect(
-            'DRIVER={ODBC Driver 17 for SQL Server};'
-            'SERVER=pastafari.database.windows.net;'
-            'DATABASE=TP4;'
-            'UID=AdminBD@pastafari;'
-            'PWD=Bases123;'
-            'TrustServerCertificate=yes;'
+        'DRIVER={ODBC Driver 17 for SQL Server};'
+        'SERVER=localhost\\SQLEXPRESS;'
+        'DATABASE=TP4;'  # o la base que hayas creado, por ejemplo 'TP4'
+        'Trusted_Connection=yes;'
         )
         return conexion
     except Exception as e:
