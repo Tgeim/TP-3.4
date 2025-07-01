@@ -128,7 +128,7 @@ BEGIN TRY
 
 
     --============================================
-    -- 🔹 Variables para bloque de EliminarEmpleados
+    -- Variables para bloque de EliminarEmpleados
     DECLARE
         @xmlBloqueEliminaciones     XML,
         @valorDocEliminar           VARCHAR(30),
@@ -137,12 +137,18 @@ BEGIN TRY
         @iEliminar                  INT,
         @totalEliminaciones         INT;
 
-    -- 🔹 Tabla variable para almacenar los empleados a eliminar desde el XML
+    -- Tabla variable para almacenar los empleados a eliminar desde el XML
     DECLARE @eliminacionesXML TABLE (
         valorDocumento     VARCHAR(30)
     );
     --============================================
 
+    --============================================
+    -- variables para calculo de planilla semanal
+    DECLARE @outResultCodePlanilla INT;
+    DECLARE @idPostByUserPlanilla INT = 1; -- o el valor real del usuario del sistema
+    DECLARE @postInIPPlanilla VARCHAR(100) = '127.0.0.1'; -- o el valor real si lo capturás dinámicamente
+    --=============================================
 
     WHILE @indice <= @total
     BEGIN
@@ -723,7 +729,21 @@ BEGIN TRY
         IF DATENAME(WEEKDAY, @fechaActual) = 'Thursday'
         BEGIN
             PRINT 'Ejecutando cálculo de planilla...';
-            -- Aquí iría la llamada a SP_CalcularPlanillaSemanalEmpleado
+
+            EXEC dbo.SP_CalcularPlanillaSemanalEmpleado
+                @inFechaCorte     = @fechaActual,
+                @inIdUsuario      = @idPostByUserPlanilla,
+                @inIdPostByUser   = @idPostByUserPlanilla,
+                @inPostInIP       = @postInIPPlanilla,
+                @outResultCode    = @outResultCodePlanilla OUTPUT;
+
+            IF @outResultCodePlanilla <> 0
+            BEGIN
+                RAISERROR('Error en cálculo de planilla semanal. Código: %d', 16, 1, @outResultCodePlanilla);
+                -- Puedes elegir ROLLBACK o LOG si deseas continuar
+            END
+
+
         END
 
         SET @indice += 1;
