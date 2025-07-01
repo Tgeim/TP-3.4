@@ -89,7 +89,42 @@ BEGIN TRY
     );
     --===========================================
 
+    --===========================================
+    -- Variables para bloque de AsociaciónEmpleadoDeducciones
+    DECLARE
+        @xmlBloqueAsociaciones     XML,
+        @valorDocAsociacion        VARCHAR(30),
+        @idTipoDeduccionAsociada   INT,
+        @montoDeduccionAsociada    INT,
+        @idEmpleadoAsociado        INT,
+        @iAsociacion               INT,
+        @totalAsociaciones         INT;
 
+    -- Tabla variable para almacenar asociaciones desde el XML
+    DECLARE @asociacionesXML TABLE (
+        valorDocumento     VARCHAR(30),
+        idTipoDeduccion    INT,
+        monto              INT
+    );
+    --============================================
+
+
+    --===========================================
+    -- Variables para bloque de DesasociaciónEmpleadoDeducciones
+    DECLARE
+        @xmlBloqueDesasociaciones     XML,
+        @valorDocDesasociacion        VARCHAR(30),
+        @idTipoDeduccionDesasociada   INT,
+        @idEmpleadoDesasociado        INT,
+        @iDesasociacion               INT,
+        @totalDesasociaciones         INT;
+
+    -- Tabla variable para almacenar desasociaciones desde el XML
+    DECLARE @desasociacionesXML TABLE (
+        valorDocumento     VARCHAR(30),
+        idTipoDeduccion    INT
+    );
+    --============================================
 
     WHILE @indice <= @total
     BEGIN
@@ -412,7 +447,91 @@ BEGIN TRY
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') = 1
         BEGIN
             PRINT ' Asociando deducciones...';
-            -- Aquí iría el bloque para asociar deducciones
+
+
+            -- Limpieza previa
+            DELETE FROM @asociacionesXML;
+            SET @xmlBloqueAsociaciones = NULL;
+
+            -- Extraer bloque de asociaciones de deducciones
+            SET @xmlBloqueAsociaciones = @xmlOperacion.query('
+                /Operacion
+                /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
+                /AsociacionEmpleadoDeducciones
+            ');
+
+            IF @xmlBloqueAsociaciones.exist('/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') = 1
+            BEGIN
+                PRINT ' Asociando deducciones...';
+
+                -- Llenar la tabla variable
+                INSERT INTO @asociacionesXML (
+                    valorDocumento,
+                    idTipoDeduccion,
+                    monto
+                )
+                SELECT
+                    nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
+                    nodo.value('@IdTipoDeduccion', 'INT'),
+                    ISNULL(nodo.value('@Monto', 'INT'), 0)
+                FROM @xmlBloqueAsociaciones.nodes('/AsociacionEmpleadoDeducciones/AsociacionEmpleadoConDeduccion') AS T(nodo);
+
+                SET @iAsociacion = 1;
+                SET @totalAsociaciones = (SELECT COUNT(*) FROM @asociacionesXML);
+
+                WHILE @iAsociacion <= @totalAsociaciones
+                BEGIN
+                    -- Extraer datos de la fila i
+                    SELECT 
+                        @valorDocAsociacion      = valorDocumento,
+                        @idTipoDeduccionAsociada = idTipoDeduccion,
+                        @montoDeduccionAsociada  = monto
+                    FROM (
+                        SELECT 
+                            valorDocumento,
+                            idTipoDeduccion,
+                            monto,
+                            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
+                        FROM @asociacionesXML
+                    ) AS asociacionesConFila
+                    WHERE fila = @iAsociacion;
+
+                    -- Buscar ID del empleado
+                    SELECT @idEmpleadoAsociado = id
+                    FROM dbo.Empleado
+                    WHERE valorDocumento = @valorDocAsociacion
+                    AND activo = 1;
+
+                    IF @idEmpleadoAsociado IS NULL
+                    BEGIN
+                        PRINT '  Empleado con documento "' + @valorDocAsociacion + '" no encontrado. Asociación omitida.';
+                    END
+                    ELSE
+                    BEGIN
+                        -- Insertar la asociación directamente
+                        INSERT INTO dbo.DeduccionEmpleado (
+                            idEmpleado,
+                            idTipoDeduccion,
+                            fechaAsociacion,
+                            monto
+                        )
+                        VALUES (
+                            @idEmpleadoAsociado,
+                            @idTipoDeduccionAsociada,
+                            @fechaActual,
+                            @montoDeduccionAsociada
+                        );
+
+                        PRINT ' Deducción asociada para empleado ' + @valorDocAsociacion;
+                    END
+
+                    -- Limpieza
+                    SET @idEmpleadoAsociado = NULL;
+
+                    SET @iAsociacion += 1;
+                END
+            END
+
         END
 
         ------------------------------------------
@@ -421,7 +540,85 @@ BEGIN TRY
         IF @xmlOperacion.exist('/Operacion/FechaOperacion[@Fecha=sql:variable("@fechaActual")]/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') = 1
         BEGIN
             PRINT ' Desasociando deducciones...';
-            -- Aquí iría el bloque para desasociar deducciones
+
+
+            -- Limpieza previa
+            DELETE FROM @desasociacionesXML;
+            SET @xmlBloqueDesasociaciones = NULL;
+
+            -- Extraer bloque de desasociación de deducciones
+            SET @xmlBloqueDesasociaciones = @xmlOperacion.query('
+                /Operacion
+                /FechaOperacion[@Fecha=sql:variable("@fechaActual")]
+                /DesasociacionEmpleadoDeducciones
+            ');
+
+            IF @xmlBloqueDesasociaciones.exist('/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') = 1
+            BEGIN
+                PRINT '➡ Desasociando deducciones...';
+
+                -- Llenar tabla con datos del XML
+                INSERT INTO @desasociacionesXML (
+                    valorDocumento,
+                    idTipoDeduccion
+                )
+                SELECT
+                    nodo.value('@ValorTipoDocumento', 'VARCHAR(30)'),
+                    nodo.value('@IdTipoDeduccion', 'INT')
+                FROM @xmlBloqueDesasociaciones.nodes('/DesasociacionEmpleadoDeducciones/DesasociacionEmpleadoConDeduccion') AS T(nodo);
+
+                SET @iDesasociacion = 1;
+                SET @totalDesasociaciones = (SELECT COUNT(*) FROM @desasociacionesXML);
+
+                WHILE @iDesasociacion <= @totalDesasociaciones
+                BEGIN
+                    -- Extraer fila actual
+                    SELECT 
+                        @valorDocDesasociacion      = valorDocumento,
+                        @idTipoDeduccionDesasociada = idTipoDeduccion
+                    FROM (
+                        SELECT 
+                            valorDocumento,
+                            idTipoDeduccion,
+                            ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS fila
+                        FROM @desasociacionesXML
+                    ) AS filaDes
+                    WHERE fila = @iDesasociacion;
+
+                    -- Buscar ID del empleado
+                    SELECT @idEmpleadoDesasociado = id
+                    FROM dbo.Empleado
+                    WHERE valorDocumento = @valorDocDesasociacion
+                    AND activo = 1;
+
+                    IF @idEmpleadoDesasociado IS NULL
+                    BEGIN
+                        PRINT '  Empleado con documento "' + @valorDocDesasociacion + '" no encontrado. Desasociación omitida.';
+                    END
+                    ELSE
+                    BEGIN
+                        -- Ejecutar la desasociación
+                        UPDATE dbo.DeduccionEmpleado
+                        SET fechaDesasociacion = @fechaActual
+                        WHERE idEmpleado = @idEmpleadoDesasociado
+                        AND idTipoDeduccion = @idTipoDeduccionDesasociada
+                        AND fechaDesasociacion IS NULL;
+
+                        PRINT ' Deducción desasociada para empleado ' + @valorDocDesasociacion;
+                    END
+
+                    -- Limpieza
+                    SET @idEmpleadoDesasociado = NULL;
+
+                    SET @iDesasociacion += 1;
+                END
+            END
+
+
+
+
+
+
         END
 
         ------------------------------
