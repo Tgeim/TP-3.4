@@ -94,3 +94,39 @@ def detalle_deducciones_empleado():
 
     except Exception as e:
         return jsonify({'error': f'Error consultando deducciones: {e}'}), 500
+@ruta_planillas_empleado.route('/usuario/planillas/ultimas', methods=['GET'])
+def obtener_ultimas_planillas():
+    if 'usuario' not in session or session['usuario'].get('esAdmin'):
+        return jsonify({'error': 'No autorizado'}), 403
+
+    tipo = request.args.get('tipo')
+    id_empleado = session['usuario']['id']
+    cantidad = 12 if tipo == 'mensual' else 15
+
+    try:
+        conexion = obtener_conexion()
+        cursor = conexion.cursor()
+
+        if tipo == 'mensual':
+            cursor.execute("""
+                DECLARE @out INT;
+                EXEC dbo.SP_ListarUltimasPlanillasMensualesEmpleado
+                    @inIdEmpleado = ?, @inCantidadMeses = ?, @outResultCode = @out OUTPUT;
+            """, (id_empleado, cantidad))
+        elif tipo == 'semanal':
+            cursor.execute("""
+                DECLARE @out INT;
+                EXEC dbo.SP_ListarUltimasPlanillasSemanalesEmpleado
+                    @inIdEmpleado = ?, @inCantidadSemanas = ?, @outResultCode = @out OUTPUT;
+            """, (id_empleado, cantidad))
+        else:
+            return jsonify({'error': 'Tipo inválido'}), 400
+
+        columnas = [col[0] for col in cursor.description]
+        filas = cursor.fetchall()
+        planillas = [dict(zip(columnas, fila)) for fila in filas]
+
+        return jsonify({'planillas': planillas})
+
+    except Exception as e:
+        return jsonify({'error': f'Error consultando planillas: {e}'}), 500

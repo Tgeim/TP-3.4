@@ -7,15 +7,38 @@
     <script>
         function toggleCampos() {
             const tipo = document.getElementById('tipo').value;
-            document.getElementById('input_fecha_mes').style.display = (tipo === 'mensual') ? 'block' : 'none';
-            document.getElementById('input_fecha_semana').style.display = (tipo === 'semanal') ? 'block' : 'none';
+            const inputFechaMensual = document.querySelector('input[name="fecha_mensual"]');
+            const inputFechaSemanal = document.querySelector('input[name="fecha_semanal"]');
+
+            if (tipo === 'mensual') {
+                document.getElementById('input_fecha_mes').style.display = 'block';
+                document.getElementById('input_fecha_semana').style.display = 'none';
+                inputFechaSemanal.value = '';
+            } else {
+                document.getElementById('input_fecha_mes').style.display = 'none';
+                document.getElementById('input_fecha_semana').style.display = 'block';
+                inputFechaMensual.value = '';
+            }
         }
-        window.onload = toggleCampos;
+
+        document.addEventListener('DOMContentLoaded', function () {
+            toggleCampos();
+
+            const tipo = document.getElementById('tipo').value;
+            const fechaMensual = document.querySelector('input[name="fecha_mensual"]').value;
+            const fechaSemanal = document.querySelector('input[name="fecha_semanal"]').value;
+
+            const noHayFechaMensual = tipo === 'mensual' && (!fechaMensual || fechaMensual.trim() === '');
+            const noHayFechaSemanal = tipo === 'semanal' && (!fechaSemanal || fechaSemanal.trim() === '');
+
+            if (noHayFechaMensual || noHayFechaSemanal) {
+                document.getElementById('tipo').dispatchEvent(new Event('change'));
+            }
+        });
     </script>
 </head>
 <body class="listar-planillas-body">
 
-    <!-- Barra superior -->
     <div class="barra-superior">
         <div class="usuario-info">{{ usuario.username }}</div>
         <div class="titulo-central">Mis Planillas</div>
@@ -26,7 +49,7 @@
         <form method="get" action="/usuario/planillas" class="formulario-planillas">
             <div class="filtro-opciones">
                 <label for="tipo">Tipo de Planilla:</label>
-                <select name="tipo" id="tipo" onchange="toggleCampos()">
+                <select name="tipo" id="tipo">
                     <option value="mensual" {% if tipo == 'mensual' %}selected{% endif %}>Mensual</option>
                     <option value="semanal" {% if tipo == 'semanal' %}selected{% endif %}>Semanal</option>
                 </select>
@@ -45,13 +68,15 @@
             </div>
         </form>
 
-        {% if planillas %}
         <div class="tabla-contenedor">
+            {% if planillas %}
             <table class="tabla-estilizada">
                 <thead>
                     <tr>
                         {% if tipo == 'semanal' %}
                             <th>Fecha de cálculo</th>
+                        {% else %}
+                            <th>Mes</th>
                         {% endif %}
                         <th>Horas Ordinarias</th>
                         <th>Horas Extra</th>
@@ -65,6 +90,8 @@
                         <tr>
                             {% if tipo == 'semanal' %}
                                 <td>{{ p.fechaCalculo }}</td>
+                            {% else %}
+                                <td>{{ p.mes }}</td>
                             {% endif %}
                             <td>{{ p.horasOrdinarias }}</td>
                             <td>{{ p.horasExtra }}</td>
@@ -81,13 +108,83 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% elif fecha_mensual or fecha_semanal %}
+                <p class="mensaje error">No se encontraron resultados.</p>
+            {% endif %}
         </div>
-        {% elif fecha_mensual or fecha_semanal %}
-            <p class="mensaje error">No se encontraron resultados.</p>
-        {% endif %}
     </div>
 
     <script>
+        document.getElementById('tipo').addEventListener('change', function () {
+            const tipo = this.value;
+            const inputMensual = document.querySelector('input[name="fecha_mensual"]');
+            const inputSemanal = document.querySelector('input[name="fecha_semanal"]');
+            const fechaMensual = inputMensual ? inputMensual.value : '';
+            const fechaSemanal = inputSemanal ? inputSemanal.value : '';
+
+            toggleCampos();
+
+            const noHayFechaMensual = tipo === 'mensual' && (!fechaMensual || fechaMensual.trim() === '');
+            const noHayFechaSemanal = tipo === 'semanal' && (!fechaSemanal || fechaSemanal.trim() === '');
+
+            if (noHayFechaMensual || noHayFechaSemanal) {
+                fetch(`/usuario/planillas/ultimas?tipo=${tipo}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const contenedor = document.querySelector('.tabla-contenedor');
+                        contenedor.innerHTML = '';
+
+                        if (!data.planillas || data.planillas.length === 0) {
+                            contenedor.innerHTML = '<p class="mensaje error">No se encontraron resultados.</p>';
+                            return;
+                        }
+
+                        let tabla = `
+                            <table class="tabla-estilizada">
+                                <thead>
+                                    <tr>
+                                        ${tipo === 'semanal' ? '<th>Fecha de cálculo</th>' : '<th>Mes</th>'}
+                                        <th>Horas Ordinarias</th>
+                                        <th>Horas Extra</th>
+                                        <th>Bruto</th>
+                                        <th>Deducciones</th>
+                                        <th>Neto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        data.planillas.forEach(p => {
+                            const fecha = tipo === 'semanal' ? p.fechaCalculo : p.mes;
+                            tabla += `
+                                <tr>
+                                    <td>${fecha}</td>
+                                    <td>${p.horasOrdinarias}</td>
+                                    <td>${p.horasExtra}</td>
+                                    <td>${p.montoBruto}</td>
+                                    <td
+                                        onclick="mostrarModalDeducciones(${p.idEmpleado}, '${tipo}', '${fecha}')"
+                                        style="cursor: pointer; transition: background-color 0.2s;"
+                                        onmouseover="this.style.backgroundColor='#999'"
+                                        onmouseout="this.style.backgroundColor='transparent'">
+                                        ${p.montoDeducciones}
+                                    </td>
+                                    <td>${p.montoNeto}</td>
+                                </tr>
+                            `;
+                        });
+
+                        tabla += '</tbody></table>';
+                        contenedor.innerHTML = tabla;
+                    })
+                    .catch(err => {
+                        console.error("Error al cargar planillas automáticas:", err);
+                        document.querySelector('.tabla-contenedor').innerHTML =
+                            '<p class="mensaje error">No se pudieron cargar los datos automáticamente.</p>';
+                    });
+            }
+        });
+
         function mostrarModalDeducciones(idEmpleado, tipo, fecha) {
             if (!fecha) {
                 console.warn("Fecha no válida para deducciones");
@@ -144,5 +241,6 @@
             <button onclick="cerrarModalDeducciones()" class="confirmar">Aceptar</button>
         </div>
     </div>
+
 </body>
 </html>
